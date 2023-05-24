@@ -115,3 +115,25 @@ export interface ALIFILEINFO {
   name: string
   size: number
 }
+
+export interface BOOKINFO {
+  id: number
+  file: number
+  name: string
+  introduction: string
+  cover: string
+  author: string
+  tags: object
+  grading_info: object
+  categories: number
+  downloads: number
+  size: number
+  grading: object
+  publish: boolean
+  tags_info: string[]
+}
+
+export interface BOOKTAGS {
+  label: string
+  value: number
+}

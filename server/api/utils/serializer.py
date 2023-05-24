@@ -63,8 +63,36 @@ class BookInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BookFileInfo
         exclude = ["owner_id"]
-        read_only_fields = list(
-            set([x.name for x in models.BookFileInfo._meta.fields]) - {"description"})
+        read_only_fields = ['owner_id_id', 'id', 'size']
+
+    file_info = serializers.SerializerMethodField()
+    tags_info = serializers.SerializerMethodField()
+    grading_info = serializers.SerializerMethodField(read_only=True)
+    category = serializers.SerializerMethodField(read_only=True)
+
+    def get_category(self, obj):
+        return obj.categories.name
+
+    def get_grading_info(self, obj):
+        label_list = BookTagsSerializer(models.BookLabels.get_grading(), many=True).data
+        result = []
+        for label, grade in zip(label_list, obj.grading + [0] * (len(label_list) - len(obj.grading))):
+            result.append({'label': label['label'], 'value': grade})
+        return result
+
+    def get_tags_info(self, obj):
+        if not obj.tags:
+            return []
+        return BookTagsSerializer(obj.tags, many=True).data
+
+    def get_file_info(self, obj):
+        return {'id': obj.file.id, 'file_id': obj.file.file_id, 'name': obj.name}
+
+    def validate(self, attrs):
+        print(attrs)
+        attrs['owner_id_id'] = self.context.get('request').user.pk
+        attrs['size'] = attrs['file'].size
+        return attrs
 
 
 class FileInfoSerializer(serializers.ModelSerializer):
@@ -77,4 +105,18 @@ class FileInfoSerializer(serializers.ModelSerializer):
     book = serializers.SerializerMethodField()
 
     def get_book(self, obj):
-        return getattr(obj, 'bookfileinfo', {})
+        book = getattr(obj, 'bookfileinfo', None)
+        if book:
+            print(BookInfoSerializer(book).data)
+            return BookInfoSerializer(book).data
+        return {}
+
+
+class BookTagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BookLabels
+        fields = ['value', 'label']
+        read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
+
+    value = serializers.IntegerField(source='id')
+    label = serializers.CharField(source='name')

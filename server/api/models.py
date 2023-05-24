@@ -69,8 +69,36 @@ class AliyunFileInfo(DbBaseModel):
         return f"所属用户:{self.owner_id}-文件名:{self.name}-下载次数:{self.downloads}-文件大小:{self.size}"
 
 
+class BookLabels(models.Model):
+    name = models.CharField(max_length=32, verbose_name="标签名称")
+    label_type_choices = ((1, '书籍标签'), (2, '书籍类别'), (3, '书籍评价'))
+    label_type = models.SmallIntegerField(choices=label_type_choices, default=0, verbose_name="标签类型")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="添加时间")
+    updated_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+
+    class Meta:
+        verbose_name = '书籍标签'
+        verbose_name_plural = "书籍标签"
+        unique_together = (('name', 'label_type'),)
+
+    @staticmethod
+    def get_tags():
+        return BookLabels.objects.filter(label_type=1)
+
+    @staticmethod
+    def get_categories():
+        return BookLabels.objects.filter(label_type=2)
+
+    @staticmethod
+    def get_grading():
+        return BookLabels.objects.filter(label_type=3)
+
+    def __str__(self):
+        return f"书籍标签:{self.name}-类型:{self.get_label_type_display()}"
+
+
 def default_grading():
-    return [0, 0, 0, 0, 0]
+    return []
 
 
 class BookFileInfo(DbBaseModel):
@@ -78,11 +106,14 @@ class BookFileInfo(DbBaseModel):
     name = models.CharField(max_length=256, verbose_name="书籍名称")
     introduction = models.CharField(max_length=512, verbose_name="书籍简介", null=True, blank=True)
     cover = models.CharField(max_length=512, verbose_name="书籍封面", null=True, blank=True)
-    auther = models.CharField(max_length=32, verbose_name="书籍作者")
-    tags = models.JSONField(verbose_name="书籍标签", null=True, blank=True)
+    author = models.CharField(max_length=32, verbose_name="书籍作者")
     downloads = models.BigIntegerField(verbose_name="下载次数", default=0)
     size = models.BigIntegerField(verbose_name="文件大小")
     grading = models.JSONField(verbose_name="书籍评分", default=default_grading)
+    tags = models.ManyToManyField(verbose_name="书籍标签", to=BookLabels, related_name='tags', null=True, blank=True)
+    categories = models.ForeignKey(verbose_name="书籍类别", to=BookLabels, on_delete=models.SET_NULL, null=True,
+                                   blank=True, related_name='categories')
+    publish = models.BooleanField(verbose_name="是否发布", default=True)
 
     class Meta:
         verbose_name = '书籍信息'

@@ -1,4 +1,11 @@
 <template>
+  <book-info
+    v-model:visible="showVisible"
+    :book-id="bookData.id"
+    :edit="bookData.edit"
+    :name="bookData.name"
+    @closed="getTableData"
+  ></book-info>
   <div class="filter-container">
     <el-input
       v-model="listQuery.name"
@@ -17,9 +24,19 @@
       @keyup.enter="handleFilter"
     />
     <el-select
-      v-model="listQuery.ordering"
+      v-model="listQuery.bookinfo"
       class="filter-item"
       style="width: 180px"
+      placeholder="是否入库"
+      clearable
+      @change="handleFilter"
+    >
+      <el-option v-for="item in bookStatus" :key="item.key" :label="item.label" :value="item.key" />
+    </el-select>
+    <el-select
+      v-model="listQuery.ordering"
+      class="filter-item"
+      style="width: 200px"
       @change="handleFilter"
     >
       <el-option
@@ -46,8 +63,8 @@
     v-loading="isLoading"
     :data="tableData"
     border
-    stripe
     style="width: 100%"
+    :row-class-name="tableRowClassName"
     @selection-change="handleSelectionChange"
   >
     <el-table-column align="center" type="selection" width="55" />
@@ -63,10 +80,10 @@
       </template>
     </el-table-column>
     <el-table-column align="center" label="下载次数" prop="downloads" width="100" />
-    <el-table-column align="center" label="入库信息" width="100">
+    <el-table-column align="center" label="入库信息" width="200">
       <template #default="{ row }">
-        <el-link v-if="row.book.id"></el-link>
-        <el-link v-else>未入库</el-link>
+        <el-link v-if="row.book.id" @click="editBookFun(row.book)">{{ row.book.name }}</el-link>
+        <el-link v-else @click="showBookFun(row)">点击入库</el-link>
       </template>
     </el-table-column>
     <el-table-column align="center" label="备注" prop="description">
@@ -120,6 +137,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import Pagination from '@/components/BasePagination.vue'
 import { onMounted, reactive } from 'vue'
 import type { ALIFILEINFO } from '@/utils/types'
+import BookInfo from '@/components/BookInfo.vue'
+import { BOOKINFO } from '@/utils/types'
 
 const sortOptions = [
   { label: '上传时间 Ascending', key: 'created_at' },
@@ -130,6 +149,11 @@ const sortOptions = [
   { label: '下载次数 Descending', key: '-downloads' }
 ]
 
+const bookStatus = [
+  { label: '已经入库', key: 'true' },
+  { label: '未入库', key: 'false' }
+]
+
 const isLoading = ref(false)
 const tableData = ref<ALIFILEINFO[]>([])
 const total = ref(0)
@@ -138,10 +162,24 @@ const listQuery = reactive({
   page: 1,
   size: 10,
   user_name: null,
+  bookinfo: '',
   ordering: sortOptions[1].key,
   description: null
 })
 const selectedData = ref([])
+const showVisible = ref(false)
+const bookData = reactive({
+  id: 0,
+  edit: false,
+  name: ''
+})
+
+const showBookFun = (file: ALIFILEINFO) => {
+  bookData.id = file.id
+  bookData.name = file.name
+  bookData.edit = false
+  showVisible.value = true
+}
 
 const getFileIdList = () => {
   let file_id_list = []
@@ -166,11 +204,15 @@ const delManyFileFun = () => {
     ElMessage.warning('请选择要操作的文件')
     return
   }
-  ElMessageBox.confirm(`是否删除 ${selectedData.value.length} 个文件?`, 'Warning', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消操作',
-    type: 'warning'
-  })
+  ElMessageBox.confirm(
+    `是否删除 ${selectedData.value.length} 个文件? 删除该文件，书籍信息也会同时被删除`,
+    'Warning',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消操作',
+      type: 'warning'
+    }
+  )
     .then(() => {
       isLoading.value = true
       delManyFile(getFileIdList())
@@ -189,6 +231,12 @@ const delManyFileFun = () => {
         message: '取消操作'
       })
     })
+}
+const tableRowClassName = ({ row }) => {
+  if (!row.book.id) {
+    return 'warning-row'
+  }
+  return 'success-row'
 }
 const handleSelectionChange = (val) => {
   selectedData.value = val
@@ -226,16 +274,36 @@ const getTableData = (refresh = false) => {
     })
 }
 const delFileFun = (row) => {
-  delFile(row.id).then(() => {
-    ElMessage.success(`${row.name} 删除成功`)
-    getTableData()
+  ElMessageBox.confirm(`是否删除 ${row.name} 文件`, 'Warning', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消操作',
+    type: 'warning'
   })
+    .then(() => {
+      delFile(row.id).then(() => {
+        ElMessage.success(`${row.name} 删除成功`)
+        getTableData()
+      })
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '取消操作'
+      })
+    })
 }
 const downloadFileFun = (row) => {
   getDownloadUrl(row.id).then((res: any) => {
     downloadFile(res.download_url)
   })
 }
+
+const editBookFun = (book: BOOKINFO) => {
+  bookData.edit = true
+  showVisible.value = true
+  bookData.id = book.id
+}
+
 onMounted(() => {
   getTableData(true)
 })

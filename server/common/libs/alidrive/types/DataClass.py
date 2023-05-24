@@ -5,6 +5,8 @@ import logging
 from dataclasses import dataclass, is_dataclass
 from typing import TypeVar, Generic, Optional, List, Dict, Type
 
+from django.conf import settings
+
 try:
     from typing import get_type_hints, get_origin, get_args
 except ImportError:
@@ -39,7 +41,9 @@ class DataClass:
             if key in hints:
                 params[key] = value
             else:
-                _LOGGER.warning(f'{cls.__module__}.{cls.__name__}({key} : {type(value).__name__} = {repr(value)[:100]})')
+                if settings.DEBUG:
+                    _LOGGER.warning(
+                        f'{cls.__module__}.{cls.__name__}({key} : {type(value).__name__} = {repr(value)[:100]})')
         return cls(**params)
 
     def __post_init__(self):

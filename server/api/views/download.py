@@ -32,7 +32,7 @@ class DownloadView(ReadOnlyModelViewSet):
         if download_url:
             instance.downloads += 1
             instance.save(update_fields=['downloads'])
-            return ApiResponse(download_url=download_url)
+            return ApiResponse(**download_url)
         return ApiResponse(code=1001, msg='文件违规')
 
     def list(self, request, *args, **kwargs):

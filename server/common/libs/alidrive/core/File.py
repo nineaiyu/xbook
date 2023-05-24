@@ -33,4 +33,4 @@ class File(BaseAligo):
                     drive_id=body.drive_id, file_id=file_id
                 )
             ) for file_id in body.file_id_list]
-        ), GetFileRequest)
+        ), BaseFile)

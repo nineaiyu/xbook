@@ -7,8 +7,9 @@
       mode="horizontal"
       @select="handleSelect"
     >
-      <el-menu-item index="upload">上传文件</el-menu-item>
+      <el-menu-item index="books">书籍管理</el-menu-item>
       <el-menu-item index="files">文件管理</el-menu-item>
+      <el-menu-item index="upload">上传文件</el-menu-item>
       <el-menu-item index="drive" v-if="userinfo.last_name === ''">云盘管理</el-menu-item>
       <div class="flex-grow" />
 

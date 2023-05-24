@@ -65,8 +65,13 @@ export function downloadFile(url: string) {
   iframe.style.display = 'none' // 防止影响页面
   iframe.style.height = '0' // 防止影响页面
   iframe.src = url
+  iframe.referrerPolicy = 'no-referrer'
   document.body.appendChild(iframe)
   setTimeout(() => {
     iframe.remove()
   }, 5 * 60 * 1000)
+}
+
+export const getAssetsFile = (url: string) => {
+  return new URL(`../assets/images/${url}`, import.meta.url).href
 }

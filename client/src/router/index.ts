@@ -38,6 +38,18 @@ const router = createRouter({
       name: 'files',
       // @ts-ignore
       component: () => import('@/views/FileManager.vue')
+    },
+    {
+      path: '/books',
+      name: 'books',
+      // @ts-ignore
+      component: () => import('@/views/BookManager.vue')
+    },
+    {
+      path: '/test',
+      name: 'test',
+      // @ts-ignore
+      component: () => import('@/views/TestView.vue')
     }
   ]
 })
@@ -46,16 +58,7 @@ const whiteList = ['/login', '/auth-redirect', '/logout'] // no redirect whiteli
 router.beforeEach(async (to, from, next) => {
   NProgress.start()
 
-  const menuList = [
-    'lobby',
-    'files',
-    'drive',
-    'share',
-    'userinfo',
-    'password',
-    'upload',
-    'register'
-  ]
+  const menuList = ['books', 'files', 'drive', 'userinfo', 'password', 'upload', 'register']
   const menu = menuStore()
   if (menuList.indexOf(<string>to.name) !== -1) {
     menu.activeIndex = to.name

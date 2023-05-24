@@ -4,14 +4,14 @@
 # filename : files
 # author : ly_13
 # date : 2022/9/18
+import json
 import logging
 
 from django_filters import rest_framework as filters
 from rest_framework.filters import OrderingFilter
-from rest_framework.views import APIView
 
 from api.models import AliyunFileInfo
-from api.utils.drive import get_aliyun_drive, batch_get_download_url, batch_delete_file
+from api.utils.drive import get_aliyun_drive
 from api.utils.serializer import FileInfoSerializer
 from common.cache.storage import DownloadUrlCache
 from common.core.filter import OwnerUserFilter
@@ -26,6 +26,10 @@ class FileInfoFilter(filters.FilterSet):
     max_size = filters.NumberFilter(field_name="size", lookup_expr='lte')
     description = filters.CharFilter(field_name='description', lookup_expr='icontains')
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
+    bookinfo = filters.CharFilter(field_name='bookinfo', method='bookinfo_filter')
+
+    def bookinfo_filter(self, queryset, name, value):
+        return queryset.exclude(bookfileinfo__isnull=bool(json.loads(value)))
 
     class Meta:
         model = AliyunFileInfo
@@ -54,20 +58,3 @@ class FileInfoView(BaseModelSet):
         return ApiResponse(code=1001, msg='添加失败')
 
 
-class ManyView(APIView):
-
-    def post(self, request, name):
-        if name == 'file':
-            action = request.data.get('action', '')
-            file_id_list = request.data.get('file_id_list', [])
-            if action in ['delete', 'download'] and file_id_list:
-                file_obj_list = AliyunFileInfo.objects.filter(owner_id=request.user, file_id__in=file_id_list).all()
-                if file_obj_list:
-                    if action == 'download':
-                        return ApiResponse(data=batch_get_download_url(file_obj_list))
-                    elif action == 'delete':
-                        batch_delete_file(file_obj_list)
-                        AliyunFileInfo.objects.filter(owner_id=request.user, file_id__in=file_id_list).delete()
-                        return ApiResponse()
-
-        return ApiResponse(code=1001, msg='操作失败')
