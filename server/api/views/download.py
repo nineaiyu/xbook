@@ -40,8 +40,6 @@ class DownloadView(ReadOnlyModelViewSet):
 
 
 class DirectlyDownloadView(APIView):
-    permission_classes = []
-    authentication_classes = []
 
     def get(self, request, file_pk, file_id, file_name):
         instance = AliyunFileInfo.objects.filter(pk=file_pk, file_id=file_id).first()

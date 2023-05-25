@@ -1,11 +1,11 @@
 <template>
-  <book-info
+  <edit-book
     v-model:visible="showVisible"
     :book-id="bookData.id"
     :edit="bookData.edit"
     :name="bookData.name"
     @closed="getTableData"
-  ></book-info>
+  ></edit-book>
   <div class="filter-container">
     <el-input
       v-model="listQuery.name"
@@ -137,8 +137,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import Pagination from '@/components/BasePagination.vue'
 import { onMounted, reactive } from 'vue'
 import type { ALIFILEINFO } from '@/utils/types'
-import BookInfo from '@/components/BookInfo.vue'
 import { BOOKINFO } from '@/utils/types'
+import EditBook from '@/components/EditBook.vue'
 
 const sortOptions = [
   { label: '上传时间 Ascending', key: 'created_at' },

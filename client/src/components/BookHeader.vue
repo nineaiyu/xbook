@@ -1,5 +1,5 @@
 <template>
-  <div class="header">
+  <div class="header" v-if="userinfo.is_superuser">
     <el-menu
       :default-active="menu.activeIndex"
       :ellipsis="false"
@@ -7,12 +7,11 @@
       mode="horizontal"
       @select="handleSelect"
     >
+      <el-menu-item index="lobby">大厅</el-menu-item>
       <el-menu-item index="books">书籍管理</el-menu-item>
       <el-menu-item index="files">文件管理</el-menu-item>
       <el-menu-item index="upload">上传文件</el-menu-item>
-      <el-menu-item index="drive" v-if="userinfo.last_name === ''">云盘管理</el-menu-item>
-      <div class="flex-grow" />
-
+      <el-menu-item index="drive">云盘管理</el-menu-item>
       <el-sub-menu index="6">
         <template #title>{{ getTitleName() }}</template>
         <el-menu-item index="userinfo">

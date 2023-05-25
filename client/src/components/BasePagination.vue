@@ -31,7 +31,7 @@ const props = defineProps({
     default: 10
   },
   pageSizes: {
-    type: Array as PropType<number>,
+    type: Array as PropType<number | any>,
     default() {
       return [10, 30, 50, 100]
     }

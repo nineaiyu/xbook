@@ -46,6 +46,18 @@ const router = createRouter({
       component: () => import('@/views/BookManager.vue')
     },
     {
+      path: '/lobby',
+      name: 'lobby',
+      // @ts-ignore
+      component: () => import('@/views/LobbyView.vue')
+    },
+    {
+      path: '/book/:id',
+      name: 'book',
+      // @ts-ignore
+      component: () => import('@/views/BookDetailView.vue')
+    },
+    {
       path: '/test',
       name: 'test',
       // @ts-ignore
@@ -58,19 +70,36 @@ const whiteList = ['/login', '/auth-redirect', '/logout'] // no redirect whiteli
 router.beforeEach(async (to, from, next) => {
   NProgress.start()
 
-  const menuList = ['books', 'files', 'drive', 'userinfo', 'password', 'upload', 'register']
+  const menuList = [
+    'lobby',
+    'book',
+    'books',
+    'files',
+    'drive',
+    'userinfo',
+    'password',
+    'upload',
+    'register'
+  ]
   const menu = menuStore()
   if (menuList.indexOf(<string>to.name) !== -1) {
     menu.activeIndex = to.name
   }
+  const accessToken = getAccessToken()
 
-  if (['lobby', 'register'].indexOf(<string>to.name) !== -1) {
+  if (to.name === 'lobby' && accessToken) {
+    const store = userinfoStore()
+    if (!store.username) {
+      await store.getUserInfo()
+    }
+  }
+
+  if (['lobby', 'register', 'book'].indexOf(<string>to.name) !== -1) {
     next()
     NProgress.done()
     return
   }
 
-  const accessToken = getAccessToken()
   if (accessToken) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page

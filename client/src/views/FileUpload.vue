@@ -9,7 +9,6 @@
         <div class="el-upload__tip">上传文件，仅支持文件，不支持拖拽</div>
       </template>
     </el-upload>
-
     <el-card shadow="hover" class="filelist">
       <template #header>
         <el-row>

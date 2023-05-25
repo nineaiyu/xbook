@@ -55,7 +55,7 @@ class BookInfoView(BaseModelSet):
     pagination_class = PageNumber
 
     filter_backends = [OwnerUserFilter, filters.DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ['size', 'created_at', 'downloads']
+    ordering_fields = ['size', 'created_time', 'downloads']
     filterset_class = BookInfoFilter
 
     def create(self, request, *args, **kwargs):

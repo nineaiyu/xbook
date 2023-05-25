@@ -1,10 +1,10 @@
 <template>
-  <book-info
+  <edit-book
     v-model:visible="showVisible"
     :book-id="bookData.id"
     :edit="bookData.edit"
     @closed="getTableData"
-  ></book-info>
+  ></edit-book>
   <div class="filter-container">
     <el-input
       v-model="listQuery.name"
@@ -174,10 +174,10 @@ import {
 import { copyRDownloadUrl, diskSize, downloadFile, formatTime } from '@/utils'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Pagination from '@/components/BasePagination.vue'
-import BookInfo from '@/components/BookInfo.vue'
 import { onMounted, reactive, ref } from 'vue'
 import type { BOOKINFO } from '@/utils/types'
 import { BOOKTAGS } from '@/utils/types'
+import EditBook from '@/components/EditBook.vue'
 
 const sortOptions = [
   { label: '添加时间 Ascending', key: 'created_time' },

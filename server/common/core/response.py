@@ -13,7 +13,7 @@ class PageNumber(PageNumberPagination):
     page_size = 20  # 每页显示多少条
     page_size_query_param = 'size'  # URL中每页显示条数的参数
     page_query_param = 'page'  # URL中页码的参数
-    max_page_size = 3000  # 返回最大数据条数
+    max_page_size = 100  # 返回最大数据条数
 
 
 class ApiResponse(Response):

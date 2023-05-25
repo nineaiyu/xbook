@@ -10,6 +10,7 @@ import logging
 from rest_framework import serializers
 
 from api import models
+from common.utils.token import make_token
 
 logger = logging.getLogger(__file__)
 
@@ -25,7 +26,7 @@ class AliyunDriveSerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UserInfo
-        fields = ['username', 'first_name', 'email', 'last_login', 'last_name']
+        fields = ['username', 'first_name', 'email', 'last_login', 'last_name', 'is_superuser']
         read_only_fields = list(
             set([x.name for x in models.UserInfo._meta.fields]) - {"first_name"})
 
@@ -120,3 +121,44 @@ class BookTagsSerializer(serializers.ModelSerializer):
 
     value = serializers.IntegerField(source='id')
     label = serializers.CharField(source='name')
+
+
+class LobbyFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BookFileInfo
+        fields = ['id', 'name', 'created_time', 'author']
+        read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
+
+
+class BookCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BookFileInfo
+        fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction']
+        read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
+
+    tags_info = serializers.SerializerMethodField(read_only=True)
+    category = serializers.SerializerMethodField(read_only=True)
+
+    def get_category(self, obj):
+        return obj.categories.name
+
+    def get_tags_info(self, obj):
+        if not obj.tags:
+            return []
+        return BookTagsSerializer(obj.tags, many=True).data
+
+
+class BookDetailSerializer(BookCategorySerializer, BookInfoSerializer):
+    class Meta:
+        model = models.BookFileInfo
+        fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction',
+                  'token', 'grading_info']
+        read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
+
+    token = serializers.SerializerMethodField()
+
+    def get_token(self, obj):
+        context = self.context
+        time_limit = context.get('time_limit', 600)
+        prefix = context.get('prefix', 'lobby')
+        return make_token(key=f"{obj.pk}", time_limit=time_limit, force_new=True, prefix=prefix)

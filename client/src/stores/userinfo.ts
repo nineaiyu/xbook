@@ -7,6 +7,7 @@ export const userinfoStore = defineStore('userinfo', {
     username: '',
     first_name: '',
     last_name: '0',
+    is_superuser: 0,
     email: '',
     last_login: '',
     expired_time: ''
