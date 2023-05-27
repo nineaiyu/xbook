@@ -53,6 +53,26 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="书籍封面">
+        <el-upload
+          ref="uploadRef"
+          list-type="picture-card"
+          :show-file-list="false"
+          :auto-upload="props.edit"
+          :headers="uploadAuth()"
+          :action="uploadUrl()"
+          :on-success="uploadSuccess"
+          :on-error="uploadError"
+          :before-upload="beforeUpload"
+          :on-change="changeUpload"
+        >
+          <el-image v-if="bookData.cover" :src="bookData.cover" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          <template #tip>
+            <div class="el-upload__tip">jpg/png/gif/jpeg files with a size less than 500kb</div>
+          </template>
+        </el-upload>
+      </el-form-item>
       <el-form-item label="标签[多选]">
         <el-select
           v-model="bookData.tags"
@@ -100,6 +120,7 @@ import { addBook, getBookInfo, getBookLabel, upBook } from '@/api/book'
 import type { BOOKINFO, BOOKTAGS } from '@/utils/types'
 import { ElMessage } from 'element-plus'
 import { getAssetsFile } from '@/utils'
+import { getAccessToken } from '@/utils/cookies'
 
 const props = defineProps({
   bookId: {
@@ -132,11 +153,64 @@ const showVisible = computed({
     emit('update:visible', val)
   }
 })
-
+const createBookId = ref()
+const uploadRef = ref()
 const closeCallback = () => {
   if (flag.value) {
     emit('closed')
   }
+}
+
+const changeUpload = (rawFile) => {
+  bookData.cover = URL.createObjectURL(rawFile.raw)
+}
+
+const beforeUpload = (rawFile) => {
+  if (
+    rawFile.type !== 'image/jpeg' &&
+    rawFile.type !== 'image/png' &&
+    rawFile.type !== 'image/gif' &&
+    rawFile.type !== 'image/jpg'
+  ) {
+    ElMessage.error('Avatar picture must be JPG format!')
+    return false
+  } else if (rawFile.size / 1024 / 1024 > 2) {
+    ElMessage.error('图片大小不能超过2兆')
+    return false
+  }
+  return true
+}
+
+const uploadUrl = () => {
+  const up_url = `${import.meta.env.VITE_API_DOMAIN}/api/v1/upload/file?`
+  if (props.edit) {
+    return `${up_url}bid=${props.bookId}`
+  } else {
+    return `${up_url}fid=${props.bookId}`
+  }
+}
+
+const uploadAuth = () => {
+  return { Authorization: 'Bearer ' + getAccessToken() }
+}
+
+const uploadSuccess = (response: { data: string; code: number; msg: string }) => {
+  if (response.code === 1000) {
+    if (props.edit) {
+      ElMessage.success('图片上传更新成功')
+      refreshBookInfo()
+    } else {
+      flag.value = true
+      showVisible.value = false
+    }
+  } else {
+    ElMessage.error(response.msg)
+  }
+  console.log(response)
+}
+
+const uploadError = () => {
+  ElMessage.error('图片上传新失败')
 }
 
 const editBookInfo = (book: BOOKINFO) => {
@@ -167,8 +241,10 @@ const addBookFun = () => {
   upGrading()
   addBook(bookData).then((res: any) => {
     if (res.code === 1000) {
-      flag.value = true
-      showVisible.value = false
+      Object.keys(res).forEach((key) => {
+        ;(bookData as any)[key] = res[key]
+      })
+      uploadRef.value!.submit()
       ElMessage.success(res.msg)
     } else {
       ElMessage.error(res.msg)
@@ -199,6 +275,13 @@ const upGrading = () => {
     bookData.grading.push(res.value)
   })
 }
+const refreshBookInfo = () => {
+  getBookInfo(props.bookId).then((res: any) => {
+    if (res.code === 1000) {
+      editBookInfo(res.data)
+    }
+  })
+}
 watch(
   () => showVisible.value,
   () => {
@@ -209,11 +292,8 @@ watch(
           categories.value = res.book_categories
           grading.value = res.book_grading
           if (props.edit) {
-            getBookInfo(props.bookId).then((res: any) => {
-              if (res.code === 1000) {
-                editBookInfo(res.data)
-              }
-            })
+            createBookId.value = props.bookId
+            refreshBookInfo()
           } else {
             bookData.name = props.name
             addBookInfo()

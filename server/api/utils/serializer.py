@@ -68,7 +68,7 @@ class BookInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BookFileInfo
         exclude = ["owner_id"]
-        read_only_fields = ['owner_id_id', 'id', 'size']
+        read_only_fields = ['owner_id_id', 'id', 'size', 'cover']
 
     file_info = serializers.SerializerMethodField()
     tags_info = serializers.SerializerMethodField()
@@ -94,7 +94,6 @@ class BookInfoSerializer(serializers.ModelSerializer):
         return {'id': obj.file.id, 'file_id': obj.file.file_id, 'name': obj.name}
 
     def validate(self, attrs):
-        print(attrs)
         attrs['owner_id_id'] = self.context.get('request').user.pk
         attrs['size'] = attrs['file'].size
         return attrs
@@ -112,7 +111,6 @@ class FileInfoSerializer(serializers.ModelSerializer):
     def get_book(self, obj):
         book = getattr(obj, 'bookfileinfo', None)
         if book:
-            print(BookInfoSerializer(book).data)
             return BookInfoSerializer(book).data
         return {}
 
@@ -164,7 +162,7 @@ class BookDetailSerializer(BookCategorySerializer, BookInfoSerializer):
     class Meta:
         model = models.BookFileInfo
         fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction',
-                  'token', 'grading_info', 'publisher']
+                  'token', 'grading_info', 'publisher', 'cover']
         read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
 
     token = serializers.SerializerMethodField()

@@ -1,3 +1,5 @@
+import time
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -101,11 +103,18 @@ def default_grading():
     return []
 
 
+def book_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    prefix = filename.split('.')[-1]
+    new_filename = str(time.time()).replace('.', '')
+    return time.strftime(f"{instance.owner_id.id}/%Y/%m/%d/%S/{new_filename}.{prefix}")
+
+
 class BookFileInfo(DbBaseModel):
     file = models.OneToOneField(to=AliyunFileInfo, on_delete=models.CASCADE, verbose_name="存储信息")
     name = models.CharField(max_length=256, verbose_name="书籍名称")
     introduction = models.CharField(max_length=512, verbose_name="书籍简介", null=True, blank=True)
-    cover = models.CharField(max_length=512, verbose_name="书籍封面", null=True, blank=True)
+    cover = models.FileField(verbose_name="书籍封面", null=True, blank=True, upload_to=book_directory_path)
     author = models.CharField(max_length=32, verbose_name="书籍作者")
     downloads = models.BigIntegerField(verbose_name="下载次数", default=0)
     size = models.BigIntegerField(verbose_name="文件大小")

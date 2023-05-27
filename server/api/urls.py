@@ -9,7 +9,7 @@ from api.views.download import DownloadView
 from api.views.files import FileInfoView
 from api.views.lobby import BookLobbyView, BookCategoryView, LobbyAction, BookDetailView, BookRankDataView, \
     BookCategoriesView
-from api.views.upload import AliyunDriveUploadView
+from api.views.upload import AliyunDriveUploadView, UploadView
 
 router = SimpleRouter(False)
 router.register('drive', AliyunDriveView)
@@ -26,6 +26,7 @@ urlpatterns = [
     re_path(r'^refresh$', RefreshTokenView.as_view(), name='refresh'),
     re_path(r'^qrdrive$', AliyunDriveQRView.as_view(), name='qr_drive'),
     re_path(r'^upload$', AliyunDriveUploadView.as_view(), name='upload'),
+    re_path(r'^upload/file$', UploadView.as_view(), name='upload_file'),
     re_path(r'^label$', BookLabelInfoView.as_view(), name='book_label'),
     re_path(r'^lobby$', BookLobbyView.as_view(), name='lobby'),
     re_path(r'^categories$', BookCategoriesView.as_view(), name='categories'),

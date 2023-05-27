@@ -64,7 +64,7 @@ class BookInfoView(BaseModelSet):
 
     def retrieve(self, request, *args, **kwargs):
         data = super().retrieve(request, *args, **kwargs)
-        return ApiResponse(**data.data, )
+        return ApiResponse(**data.data)
 
 
 class BookLabelInfoView(APIView):

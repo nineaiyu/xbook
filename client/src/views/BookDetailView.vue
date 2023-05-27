@@ -1,7 +1,7 @@
 <template>
   <el-card>
     <el-space wrap :size="20" direction="horizontal">
-      <el-image :src="bookInfo.cover">
+      <el-image :src="bookInfo.cover" fit="cover" style="width: 160px">
         <template #error>
           <div class="image-slot">
             <el-icon><Picture /></el-icon>

@@ -6,7 +6,7 @@
       </el-icon>
       <div class="el-upload__text">拖拽或 <em>点击上传</em></div>
       <template #tip>
-        <div class="el-upload__tip">上传文件，仅支持文件，不支持拖拽</div>
+        <div class="el-upload__tip">上传文件，仅支持文件，不支持文件夹</div>
       </template>
     </el-upload>
     <el-card shadow="hover" class="filelist">

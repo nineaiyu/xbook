@@ -14,8 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.views.static import serve
 
 from api.views.download import DirectlyDownloadView
 
@@ -24,5 +26,6 @@ urlpatterns = [
             name="r_download"),
     path('admin/', admin.site.urls),
     path("api/v1/", include('api.urls')),
-
+    # media路径配置 如果未开启token 授权，可以启动下面配置，直接让nginx读取资源，无需 uwsgi 进行转发
+    re_path('^files/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]

@@ -160,6 +160,15 @@ AUTH_USER_MODEL = "api.UserInfo"
 
 STATIC_URL = 'static/'
 
+# Media配置
+MEDIA_URL = "files/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

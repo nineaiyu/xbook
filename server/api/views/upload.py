@@ -12,7 +12,7 @@ from django.conf import settings
 from django.db.models import F
 from rest_framework.views import APIView
 
-from api.models import AliyunFileInfo, AliyunDrive
+from api.models import AliyunFileInfo, AliyunDrive, BookFileInfo
 from api.tasks import delay_sync_drive_size
 from api.utils.drive import get_aliyun_drive
 from common.base.utils import AesBaseCrypt
@@ -111,3 +111,41 @@ class AliyunDriveUploadView(APIView):
                     UploadPartInfoCache(file_info.get('sid')).del_storage_cache()
                 return ApiResponse(data={'check_status': check_status, 'file_id': complete.file_id})
         return ApiResponse(code=1001, msg='错误请求')
+
+
+class UploadView(APIView):
+
+    def post(self, request):
+        """
+        该方法 主要是本地上传文件接口，负责上传 用户头像 和 书籍图片
+        :param request:
+        :return:
+        """
+        # 获取多个file
+        files = request.FILES.getlist('file', [])
+        book_id = request.query_params.get('bid')
+        file_id = request.query_params.get('fid')
+        if (book_id or file_id) and len(files) == 1:
+            book_obj = None
+            if book_id and not file_id:
+                book_obj = BookFileInfo.objects.filter(owner_id=request.user, pk=book_id).first()
+            if file_id and not book_id:
+                book_obj = BookFileInfo.objects.filter(owner_id=request.user, file__id=file_id).first()
+
+            if book_obj:
+                file_obj = files[0]
+                try:
+                    file_type = file_obj.name.split(".")[-1]
+                    if file_type not in ['png', 'jpeg', 'jpg', 'gif']:
+                        logger.error(f"user:{request.user} upload file type error file:{file_obj.name}")
+                        raise
+                except Exception as e:
+                    logger.error(f"user:{request.user} upload file type error Exception:{e}")
+                    return ApiResponse(code=1002, msg="错误的图片类型")
+                if book_obj.cover:
+                    book_obj.cover.delete()
+                book_obj.cover = file_obj
+                book_obj.save()
+                return ApiResponse()
+
+        return ApiResponse(code=1004, msg="数据异常")
