@@ -92,3 +92,8 @@ class DriveQrCache(RedisCacheBase):
     def __init__(self, locker_key):
         self.cache_key = f"{CACHE_KEY_TEMPLATE.get('drive_qrcode_key')}_{locker_key}"
         super().__init__(self.cache_key)
+
+class GradingCache(RedisCacheBase):
+    def __init__(self, book_id, client_id):
+        self.cache_key = f"{CACHE_KEY_TEMPLATE.get('book_grading_increase_key')}_{client_id}_{book_id}"
+        super().__init__(self.cache_key, timeout=24 * 3600)

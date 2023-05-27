@@ -7,6 +7,13 @@ export function getLobby(params: object) {
     params: params
   })
 }
+export function getRank(params: object) {
+  return request({
+    url: '/rank',
+    method: 'get',
+    params: params
+  })
+}
 export function getBookDetail(id: number | any) {
   return request({
     url: '/detail/' + id,
@@ -17,6 +24,13 @@ export function getBookDetail(id: number | any) {
 export function getCategoryBook(params: object) {
   return request({
     url: '/category',
+    method: 'get',
+    params: params
+  })
+}
+export function getCategories(params: object) {
+  return request({
+    url: '/categories',
     method: 'get',
     params: params
   })

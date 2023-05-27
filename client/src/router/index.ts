@@ -9,12 +9,13 @@ import { refreshToken } from '@/api/user' // progress bar style
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // {
-    //   path: '/',
-    //   name: 'home',
-    //   // @ts-ignore
-    //   component: () => import('@/views/HomeView.vue')
-    // },
+    {
+      path: '/',
+      name: 'home',
+      redirect: {
+        name: 'lobby'
+      }
+    },
     {
       path: '/login',
       name: 'login',
@@ -58,10 +59,24 @@ const router = createRouter({
       component: () => import('@/views/BookDetailView.vue')
     },
     {
-      path: '/test',
-      name: 'test',
+      path: '/user',
+      name: 'user',
       // @ts-ignore
-      component: () => import('@/views/TestView.vue')
+      component: () => import('@/views/user/UserBase.vue'),
+      children: [
+        {
+          path: 'info',
+          name: 'userinfo',
+          // @ts-ignore
+          component: () => import('@/views/user/UserInfo.vue')
+        },
+        {
+          path: 'pwd',
+          name: 'password',
+          // @ts-ignore
+          component: () => import('@/views/user/UserPassword.vue')
+        }
+      ]
     }
   ]
 })

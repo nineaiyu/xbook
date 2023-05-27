@@ -7,7 +7,8 @@ from api.views.auth import LoginView, LogoutView, UserInfoView, RefreshTokenView
 from api.views.book import BookInfoView, BookLabelInfoView
 from api.views.download import DownloadView
 from api.views.files import FileInfoView
-from api.views.lobby import BookLobbyView, BookCategoryView, LobbyAction, BookDetailView
+from api.views.lobby import BookLobbyView, BookCategoryView, LobbyAction, BookDetailView, BookRankDataView, \
+    BookCategoriesView
 from api.views.upload import AliyunDriveUploadView
 
 router = SimpleRouter(False)
@@ -27,6 +28,8 @@ urlpatterns = [
     re_path(r'^upload$', AliyunDriveUploadView.as_view(), name='upload'),
     re_path(r'^label$', BookLabelInfoView.as_view(), name='book_label'),
     re_path(r'^lobby$', BookLobbyView.as_view(), name='lobby'),
+    re_path(r'^categories$', BookCategoriesView.as_view(), name='categories'),
+    re_path(r'^rank$', BookRankDataView.as_view(), name='rank'),
     re_path(r'^action$', LobbyAction.as_view(), name='lobby_action'),
     re_path(r'^many/(?P<name>\w+)$', ManyActionView.as_view(), name='many_action'),
     re_path('', include(router.urls))

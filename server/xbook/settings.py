@@ -173,13 +173,16 @@ REST_FRAMEWORK = {
         # 'common.core.auth.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    # 'EXCEPTION_HANDLER': 'common.core.exception.common_exception_handler',
+    'EXCEPTION_HANDLER': 'common.core.exception.common_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
-        'common.core.throttle.LoginUserThrottle',
+        'rest_framework.throttling.AnonRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'LoginUser': '100/m',
-        'UploadFile': '1000/m',
+        'anon': '60/m',
+        'user': '600/m',
+        'upload': '100/m',
+        'download1': '10/m',
+        'download2': '100/h',
     },
     'DEFAULT_PAGINATION_CLASS': 'common.core.response.PageNumber',
     'DEFAULT_PERMISSION_CLASSES': [
@@ -369,6 +372,7 @@ CACHE_KEY_TEMPLATE = {
     'download_url_key': 'download_url',
     'aliyun_drive_auth_key': 'aliyun_drive_auth',
     'upload_part_info_key': 'upload_part_info',
+    'book_grading_increase_key': 'book_grading_increase',
 }
 
 # Celery Configuration Options

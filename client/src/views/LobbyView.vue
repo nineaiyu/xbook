@@ -1,28 +1,37 @@
 <template>
   <div class="affix-container">
+    <el-input
+      placeholder="请输入小说名或者作者进行查询"
+      style="margin-bottom: 10px"
+      v-model="searchKey"
+      clearable
+      @keyup.enter="searchClick"
+    >
+      <template #append>
+        <el-button @click="searchClick"
+          ><el-icon><Search /></el-icon
+        ></el-button>
+      </template>
+    </el-input>
     <el-affix :offset="10" target=".affix-container">
       <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-        <el-tab-pane v-for="item in tabsList" :label="item.name" :name="item.id" :key="item.name">
-        </el-tab-pane>
+        <el-tab-pane v-for="item in tabsList" :label="item.name" :name="item.id" :key="item.name" />
       </el-tabs>
     </el-affix>
-    <book-category :category="activeId" />
+    <book-category :category="activeId" :search="searchKey" ref="RefBookCategory" />
     <el-backtop :right="20" :bottom="100" />
   </div>
 </template>
 <script setup lang="ts">
-import { getLobby } from '@/api/lobby'
-import type { LOBBYDATA } from '@/utils/types'
+import { getCategories } from '@/api/lobby'
 import router from '@/router'
 import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
-const lobbyData = ref<LOBBYDATA[]>()
-
-const getLobbyData = () => {
-  getLobby({}).then((res: any) => {
+const getCategoriesData = () => {
+  getCategories({ act: 'lobby' }).then((res: any) => {
     if (res.code === 1000) {
-      lobbyData.value = res.data
-      formatTabs(res.data)
+      tabsList.value = res.data
       initTabsAct()
     }
   })
@@ -30,6 +39,9 @@ const getLobbyData = () => {
 const initTabsAct = () => {
   if (route.query.category) {
     const actId = route.query.category
+    if (activeName.value === Number(actId) && Number(actId) !== 0) {
+      return
+    }
     for (const index in tabsList.value) {
       if (tabsList.value[index].id === Number(actId)) {
         activeName.value = tabsList.value[index].id
@@ -42,27 +54,27 @@ const initTabsAct = () => {
   activeName.value = 0
 }
 onMounted(() => {
-  getLobbyData()
+  getCategoriesData()
 })
 const tabsList = ref([])
-const formatTabs = (lobby: LOBBYDATA[]) => {
-  lobby.forEach((res) => {
-    const x = {
-      id: res.category.id,
-      name: res.category.name
-    }
-    if (x.id === 0) {
-      x.name = '首页'
-    }
-    tabsList.value.push(x)
-  })
-}
 
+const searchKey = ref('')
 const activeName = ref(0)
 const activeId = ref<any | number[]>([])
 const route = useRoute()
+const RefBookCategory = ref()
+
+const searchClick = () => {
+  if (searchKey.value.trim().length === 0) {
+    ElMessage.warning('搜索内容不能为空')
+    return
+  }
+  RefBookCategory.value.getSearchData(searchKey.value)
+}
+
 const handleClick = (tab) => {
   activeId.value = [tab.props.name]
+  searchKey.value = ''
   router.push({ name: 'lobby', query: { category: tab.props.name } })
 }
 watch(
@@ -81,12 +93,15 @@ watch(
 .box-card {
   width: 85vw;
 }
+.affix-container {
+  margin-top: 10px;
+}
 @media (min-width: 1024px) {
   .box-card {
     width: 381px;
   }
-  .affix-container {
-    margin-top: 10px;
-  }
+}
+.demo-tabs {
+  background-color: rgba(240, 248, 255, 0.99);
 }
 </style>

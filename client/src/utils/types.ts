@@ -139,15 +139,16 @@ export interface BOOKINFO {
   tags_info?: BOOKTAGS[]
 }
 
+export interface BOOKCATEGORY {
+  name: string
+  id: number
+}
 export interface LOBBYDATA {
-  data: {
+  data?: {
     id: number
     author: string
     name: string
     created_time: string
   }[]
-  category: {
-    name: string
-    id: number
-  }
+  category: BOOKCATEGORY
 }

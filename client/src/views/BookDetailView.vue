@@ -59,6 +59,9 @@ import type { BOOKINFO } from '@/utils/types'
 import { downloadFile, formatTime, getAssetsFile } from '@/utils'
 import { actionLobby, getBookDetail } from '@/api/lobby'
 import { ElMessage } from 'element-plus'
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
+import { getLoginToken } from '@/api/user'
+import { RESPONSEDATA } from '@/utils/types'
 
 const bookInfo: BOOKINFO = reactive({})
 const getBookData = (id: string | RouteParamValue[]) => {
@@ -76,12 +79,12 @@ const increaseAction = (index: number | string, action: string = 'grading') => {
     action: action,
     book_id: bookInfo.id,
     index: index,
-    token: bookInfo.token
+    token: bookInfo.token,
+    key: client_id.value
   }).then((res: any) => {
     if (res.code === 1000) {
       if (res.grading_info) {
         bookInfo.grading_info = res.grading_info
-        ElMessage.success('操作成功')
       }
       if (res.download_url) {
         downloadFile(res.download_url)
@@ -89,10 +92,20 @@ const increaseAction = (index: number | string, action: string = 'grading') => {
     }
   })
 }
+const client_id = ref('')
+const getFingerprint = () => {
+  const fpPromise = FingerprintJS.load()
+  fpPromise.then((fp) => {
+    fp.get().then((result) => {
+      client_id.value = result.visitorId
+    })
+  })
+}
 
 const route = useRoute()
 onMounted(() => {
   getBookData(route.params.id)
+  getFingerprint()
 })
 </script>
 

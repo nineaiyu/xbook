@@ -3,37 +3,40 @@
     <el-menu
       :default-active="menu.activeIndex"
       :ellipsis="false"
-      class="el-menu-demo ly-header"
       mode="horizontal"
       @select="handleSelect"
     >
-      <el-menu-item index="lobby">大厅</el-menu-item>
-      <el-menu-item index="books">书籍管理</el-menu-item>
-      <el-menu-item index="files">文件管理</el-menu-item>
-      <el-menu-item index="upload">上传文件</el-menu-item>
-      <el-menu-item index="drive">云盘管理</el-menu-item>
-      <el-sub-menu index="6">
-        <template #title>{{ getTitleName() }}</template>
-        <el-menu-item index="userinfo">
-          <el-icon>
-            <UserFilled />
-          </el-icon>
-          个人中心
-        </el-menu-item>
-        <el-menu-item index="password">
-          <el-icon>
-            <Unlock />
-          </el-icon>
-          修改密码
-        </el-menu-item>
-        <el-menu-item @click="logout">
-          <el-icon>
-            <SwitchFilled />
-          </el-icon>
-          注销登录
-        </el-menu-item>
-      </el-sub-menu>
-      <div class="flex-grow" />
+      <el-space wrap>
+        <el-menu-item index="lobby">首页</el-menu-item>
+        <el-sub-menu index="1">
+          <template #title>管理</template>
+          <el-menu-item index="books">书籍管理</el-menu-item>
+          <el-menu-item index="files">文件管理</el-menu-item>
+          <el-menu-item index="upload">上传文件</el-menu-item>
+          <el-menu-item index="drive">云盘管理</el-menu-item>
+        </el-sub-menu>
+        <el-sub-menu index="2">
+          <template #title>{{ getTitleName() }}</template>
+          <el-menu-item index="userinfo">
+            <el-icon>
+              <UserFilled />
+            </el-icon>
+            个人中心
+          </el-menu-item>
+          <el-menu-item index="password">
+            <el-icon>
+              <Unlock />
+            </el-icon>
+            修改密码
+          </el-menu-item>
+          <el-menu-item @click="logout">
+            <el-icon>
+              <SwitchFilled />
+            </el-icon>
+            注销登录
+          </el-menu-item>
+        </el-sub-menu>
+      </el-space>
     </el-menu>
   </div>
 </template>
