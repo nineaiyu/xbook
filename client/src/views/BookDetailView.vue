@@ -1,4 +1,8 @@
 <template>
+  <el-tabs class="demo-tabs" @tab-click="handleClick">
+    <el-tab-pane v-for="item in tabsList" :label="item.name" :name="item.id" :key="item.name" />
+  </el-tabs>
+
   <el-card>
     <el-space wrap :size="20" direction="horizontal">
       <el-image :src="bookInfo.cover" fit="cover" style="width: 160px">
@@ -9,7 +13,7 @@
         </template>
       </el-image>
       <el-space wrap direction="vertical" alignment="normal">
-        <el-text truncated style="width: 40vw">{{ bookInfo.name }}</el-text>
+        <el-text>{{ bookInfo.name }}</el-text>
         <el-text type="primary" @click="searchPublisher('author', bookInfo.author)"
           >作者：{{ bookInfo.author }}</el-text
         >
@@ -30,7 +34,7 @@
           >发布者：{{ bookInfo.publisher?.first_name }}</el-text
         >
         <el-link :underline="false" type="primary" @click="increaseAction(0, 'download')"
-          >点击下载</el-link
+          ><el-icon><Download /></el-icon>点击下载</el-link
         >
       </el-space>
       <el-text style="min-width: 50vw" type="info" v-if="bookInfo.introduction"
@@ -63,7 +67,7 @@ import { onMounted } from 'vue'
 import { RouteParamValue, useRoute } from 'vue-router'
 import type { BOOKINFO } from '@/utils/types'
 import { downloadFile, formatTime, getAssetsFile } from '@/utils'
-import { actionLobby, getBookDetail } from '@/api/lobby'
+import { actionLobby, getBookDetail, getCategories } from '@/api/lobby'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import router from '@/router'
 
@@ -109,8 +113,20 @@ const getFingerprint = () => {
 }
 
 const route = useRoute()
+const tabsList = ref()
+const getCategoriesData = () => {
+  getCategories({ act: 'lobby' }).then((res: any) => {
+    if (res.code === 1000) {
+      tabsList.value = res.data
+    }
+  })
+}
+const handleClick = (tab) => {
+  router.push({ name: 'lobby', query: { category: tab.props.name } })
+}
 onMounted(() => {
   getBookData(route.params.id)
+  getCategoriesData()
   getFingerprint()
 })
 </script>
