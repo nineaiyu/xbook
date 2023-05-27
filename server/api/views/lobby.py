@@ -41,7 +41,15 @@ class BookCategoriesView(APIView):
             result = []
         for l in BookLabels.get_categories().order_by('created_time').values('id', 'name').all():
             result.append(l)
-        return ApiResponse(data=result)
+
+        search_choices = [
+            {'label': '书籍名', 'value': 'book'},
+            {'label': '作者', 'value': 'author'},
+            {'label': '标签', 'value': 'tags'},
+            {'label': '发布者', 'value': 'publisher'},
+        ]
+
+        return ApiResponse(data=result, search_choices=search_choices)
 
 
 class BookLobbyView(APIView):
@@ -87,6 +95,25 @@ class BookCategoryFilter(filters.FilterSet):
     search = filters.CharFilter(field_name='search', method='search_filter')
 
     def search_filter(self, queryset, name, value):
+        try:
+            search = json.loads(value)
+        except:
+            search = {}
+        act = search.get('act', '')
+        key = search.get('key', '')
+        if act and key:
+            if act == 'book':
+                return queryset.filter(name__icontains=key).distinct()
+            elif act == 'author':
+                return queryset.filter(author__icontains=key).distinct()
+            elif act == 'tags':
+                return queryset.filter(tags__name__icontains=key, tags__label_type=1).distinct()
+            elif act == 'publisher':
+                return queryset.filter(owner_id__first_name__icontains=key).distinct()
+            elif act == 'pid':
+                return queryset.filter(owner_id__username=key).distinct()
+            elif act == 'tid':
+                return queryset.filter(tags__id=key).distinct()
         return queryset.filter(Q(name__icontains=value) | Q(author__icontains=value)).distinct()
 
     def categories_filter(self, queryset, name, value):

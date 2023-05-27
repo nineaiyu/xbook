@@ -68,8 +68,10 @@
       </el-card>
     </el-space>
   </div>
-
   <div v-else>
+    <div v-if="listQuery.search" style="margin: 5px auto">
+      <el-text type="success">搜索结果如下：</el-text>
+    </div>
     <el-space wrap direction="horizontal" alignment="normal">
       <el-space wrap direction="vertical">
         <el-card v-for="book in categoryData" :key="book.id" class="box-card" shadow="hover">
@@ -82,20 +84,19 @@
             <el-text type="info">{{ book.introduction }}</el-text>
             <el-space wrap alignment="normal" :size="20">
               <el-text type="info"
-                >分类：<el-link type="success" :underline="false">{{
-                  book.category
-                }}</el-link></el-text
-              >
-              <el-text type="info"
                 >标签：
                 <el-tag
                   v-for="(tag, index) in book.tags_info"
+                  @click="searchPublisher('tid', tag.value)"
                   :key="tag.value"
                   :type="['', 'success', 'info', 'warning', 'danger'][index % 5]"
                   >{{ tag.label }}</el-tag
                 >
               </el-text>
               <el-text type="info">时间：{{ formatTime(book.created_time) }}</el-text>
+              <el-text type="info" @click="searchPublisher('pid', book.publisher.username)"
+                >发布者：<el-text type="primary">{{ book.publisher?.first_name }}</el-text></el-text
+              >
               <el-text type="info">下载次数：{{ book.downloads }}</el-text>
               <el-link type="primary" :underline="false" @click="goDetail(book.id)"
                 >查看全文</el-link
@@ -177,11 +178,6 @@ const props = defineProps({
   category: {
     type: Array as PropType<number>,
     required: true
-  },
-  search: {
-    type: String,
-    required: false,
-    default: ''
   }
 })
 
@@ -190,8 +186,8 @@ const categoryData = ref<BOOKINFO[]>()
 const tabsList = ref<BOOKCATEGORY[]>()
 
 const router = useRouter()
-const getSearchData = (key: string) => {
-  listQuery.search = key
+const getSearchData = (search: object) => {
+  listQuery.search = JSON.stringify(search)
   listQuery.page = 1
   listQuery.size = 10
   listQuery.categories = ''
@@ -244,6 +240,9 @@ const getIndexData = () => {
       lobbyData.value = res.data
     }
   })
+}
+const searchPublisher = (act, key) => {
+  router.push({ name: 'lobby', query: { key: key, act: act } })
 }
 watch(
   () => props.category,

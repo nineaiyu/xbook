@@ -16,8 +16,9 @@ import { updateUserInfo } from '@/api/user'
 
 const userinfo = userinfoStore()
 const update = () => {
-  updateUserInfo({ first_name: userinfo.first_name }).then(() => {
+  updateUserInfo({ first_name: userinfo.first_name }).then(async () => {
     ElMessage.success('昵称更新成功')
+    await userinfo.getUserInfo()
   })
 }
 </script>

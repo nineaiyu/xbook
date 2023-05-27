@@ -137,6 +137,10 @@ export interface BOOKINFO {
   grading?: object
   publish?: boolean
   tags_info?: BOOKTAGS[]
+  publisher: {
+    first_name: string
+    username: string
+  }
 }
 
 export interface BOOKCATEGORY {

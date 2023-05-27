@@ -10,11 +10,14 @@
       </el-image>
       <el-space wrap direction="vertical" alignment="normal">
         <el-text truncated style="width: 40vw">{{ bookInfo.name }}</el-text>
-        <el-text>作者：{{ bookInfo.author }}</el-text>
+        <el-text type="primary" @click="searchPublisher('author', bookInfo.author)"
+          >作者：{{ bookInfo.author }}</el-text
+        >
         <el-text>分类：{{ bookInfo.category }}</el-text>
         <el-text type="info"
           >标签：
           <el-tag
+            @click="searchPublisher('tid', tag.value)"
             v-for="(tag, index) in bookInfo.tags_info"
             :key="tag.value"
             :type="['', 'success', 'info', 'warning', 'danger'][index % 5]"
@@ -23,6 +26,9 @@
         </el-text>
         <el-text type="info">时间：{{ formatTime(bookInfo.created_time) }}</el-text>
         <el-text type="info">总下载次数：{{ bookInfo.downloads }}</el-text>
+        <el-text type="primary" @click="searchPublisher('pid', bookInfo.publisher.username)"
+          >发布者：{{ bookInfo.publisher?.first_name }}</el-text
+        >
         <el-link :underline="false" type="primary" @click="increaseAction(0, 'download')"
           >点击下载</el-link
         >
@@ -58,10 +64,8 @@ import { RouteParamValue, useRoute } from 'vue-router'
 import type { BOOKINFO } from '@/utils/types'
 import { downloadFile, formatTime, getAssetsFile } from '@/utils'
 import { actionLobby, getBookDetail } from '@/api/lobby'
-import { ElMessage } from 'element-plus'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
-import { getLoginToken } from '@/api/user'
-import { RESPONSEDATA } from '@/utils/types'
+import router from '@/router'
 
 const bookInfo: BOOKINFO = reactive({})
 const getBookData = (id: string | RouteParamValue[]) => {
@@ -73,7 +77,9 @@ const getBookData = (id: string | RouteParamValue[]) => {
     }
   })
 }
-
+const searchPublisher = (act, key) => {
+  router.push({ name: 'lobby', query: { key: key, act: act } })
+}
 const increaseAction = (index: number | string, action: string = 'grading') => {
   actionLobby({
     action: action,

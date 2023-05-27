@@ -48,10 +48,14 @@ class UserInfoUpdateSerializer(serializers.ModelSerializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
+    def validate(self, attrs):
+        attrs['first_name'] = attrs['first_name'][:8]
+        return attrs
+
     def update(self, instance, validated_data):
         old_password = validated_data.get("old_password")
         new_password = validated_data.get("new_password")
-        if old_password and new_password and instance.last_name != "0":
+        if old_password and new_password:
             if not instance.check_password(validated_data.get("old_password")):
                 raise Exception('旧密码校验失败')
             instance.set_password(validated_data.get("new_password"))
@@ -133,11 +137,19 @@ class LobbyFileSerializer(serializers.ModelSerializer):
 class BookCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BookFileInfo
-        fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction']
+        fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction',
+                  'publisher']
         read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
 
     tags_info = serializers.SerializerMethodField(read_only=True)
     category = serializers.SerializerMethodField(read_only=True)
+    publisher = serializers.SerializerMethodField()
+
+    def get_publisher(self, obj):
+        return {
+            'first_name': obj.owner_id.first_name,
+            'username': obj.owner_id.username
+        }
 
     def get_category(self, obj):
         return obj.categories.name
@@ -152,7 +164,7 @@ class BookDetailSerializer(BookCategorySerializer, BookInfoSerializer):
     class Meta:
         model = models.BookFileInfo
         fields = ['id', 'name', 'created_time', 'author', 'tags_info', 'category', 'downloads', 'size', 'introduction',
-                  'token', 'grading_info']
+                  'token', 'grading_info', 'publisher']
         read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]))
 
     token = serializers.SerializerMethodField()
