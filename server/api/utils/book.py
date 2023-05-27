@@ -71,7 +71,7 @@ def get_rank_list(categories=None, limit=10):
             default_timezone = timezone.get_default_timezone()
             value = timezone.make_aware(datetime.datetime.now() - datetime.timedelta(days=day), default_timezone)
             queryset = queryset.filter(created_time__gt=value)
-        queryset = queryset.order_by('-downloads').order_by('-created_time')[:limit]
+        queryset = queryset.order_by('-created_time').order_by('-downloads')[:limit]
         data = LobbyFileSerializer(queryset, many=True).data
         result.append(
             {'category': {'id': day, 'name': f"{'-'.join([x['name'] for x in book_labels])}书籍{label}排行榜"},
