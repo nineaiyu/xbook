@@ -91,6 +91,9 @@
       <el-button class="filter-item" icon="Download" plain @click="downManyBookFun">
         下载选中文件&nbsp;&nbsp;&nbsp;
       </el-button>
+      <el-button class="filter-item" icon="Refresh" plain @click="refreshCache">
+        刷新大厅缓存&nbsp;&nbsp;&nbsp;
+      </el-button>
     </div>
   </div>
   <el-table
@@ -169,7 +172,8 @@ import {
   downloadManyBook,
   getDownloadUrl,
   getBookList,
-  getBookLabel
+  getBookLabel,
+  refreshBookCache
 } from '@/api/book'
 import { copyRDownloadUrl, diskSize, downloadFile, formatTime } from '@/utils'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -222,6 +226,13 @@ const getBookIdList = () => {
     book_id_list.push(res.id)
   })
   return book_id_list
+}
+const refreshCache = () => {
+  refreshBookCache().then((res: any) => {
+    if (res.code === 1000) {
+      ElMessage.success('操作成功，一分钟内生效')
+    }
+  })
 }
 const downManyBookFun = () => {
   if (selectedData.value.length === 0) {

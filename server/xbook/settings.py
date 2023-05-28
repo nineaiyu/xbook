@@ -418,17 +418,18 @@ CELERY_RESULT_SERIALIZER = 'pickle'
 # CELERY_ACCEPT_CONTENT = ['pickle']
 # CELERY_TASK_SERIALIZER = 'pickle'
 
-# CELERY_BEAT_SCHEDULE = {
-#     'sync_drive_size_job': {
-#         'task': 'api.tasks.batch_sync_drive_size',
-#         'schedule': crontab(hour=2, minute=2),
-#         'args': ()
-#     }, 'clean_visitor_user_job': {
-#         'task': 'api.tasks.clean_visitor_user',
-#         'schedule': crontab(hour=2, minute=30),
-#         'args': ()
-#     },
-# }
+CELERY_BEAT_SCHEDULE = {
+    'sync_drive_size_job': {
+        'task': 'api.tasks.batch_sync_drive_size',
+        'schedule': crontab(hour=2, minute=2),
+        'args': ()
+    }
+    #    , 'clean_visitor_user_job': {
+    #         'task': 'api.tasks.clean_visitor_user',
+    #         'schedule': crontab(hour=2, minute=30),
+    #         'args': ()
+    #     },
+}
 
 
 BOOKSTORE = '_XBOOK_STORE'

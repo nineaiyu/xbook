@@ -75,3 +75,15 @@ export function downloadFile(url: string) {
 export const getAssetsFile = (url: string) => {
   return new URL(`../assets/images/${url}`, import.meta.url).href
 }
+
+export const getIndexType = (index: number) => {
+  if (index === 1) {
+    return 'danger'
+  } else if (index === 2) {
+    return 'warning'
+  } else if (index === 3) {
+    return ''
+  } else if (index === 4) {
+    return 'success'
+  } else return 'info'
+}

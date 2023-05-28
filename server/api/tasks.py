@@ -64,7 +64,7 @@ def batch_sync_drive_size(batch=100):
 
 @shared_task
 def refresh_lobby_cache():
-    cache_response.invalid_cache('FileLobbyView_get')
+    cache_response.invalid_cache('lobby_*')
 
 
 @MagicCacheData.make_cache(timeout=60)

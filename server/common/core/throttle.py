@@ -6,7 +6,7 @@
 # date : 2022/9/13
 
 
-from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from rest_framework.throttling import UserRateThrottle
 
 
 class UploadThrottle(UserRateThrottle):
@@ -14,11 +14,11 @@ class UploadThrottle(UserRateThrottle):
     scope = "upload"
 
 
-class Download1Throttle(AnonRateThrottle):
+class Download1Throttle(UserRateThrottle):
     """下载速率限制"""
     scope = "download1"
 
 
-class Download2Throttle(AnonRateThrottle):
+class Download2Throttle(UserRateThrottle):
     """下载速率限制"""
     scope = "download2"

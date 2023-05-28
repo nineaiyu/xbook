@@ -210,8 +210,9 @@ class MagicCacheResponse(object):
     @staticmethod
     def invalid_cache(key):
         cache_key = f'magic_cache_response_{key}'
-        res = cache.delete(cache_key)
-        logger.warning(f"invalid_response_cache cache_key:{cache_key} result:{res}")
+        for delete_key in cache.iter_keys(cache_key):
+            cache.delete(delete_key)
+        logger.warning(f"invalid_response_cache cache_key:{cache_key}")
 
     def __call__(self, func):
         this = self
@@ -241,16 +242,17 @@ class MagicCacheResponse(object):
             args=args,
             kwargs=kwargs
         )
+        cache_key = 'magic_cache_response'
         func_name = f'{view_instance.__class__.__name__}_{view_method.__name__}'
-        cache_key = f'magic_cache_response_{func_name}'
         if func_key:
             cache_key = f'{cache_key}_{func_key}'
-
+        else:
+            cache_key = f'{cache_key}_{func_name}'
         timeout = self.calculate_timeout(view_instance=view_instance)
         n_time = time.time()
         res = cache.get(cache_key)
         if res and n_time - res.get('c_time', n_time) < timeout - self.invalid_time:
-            logger.info(f"exec {func_name} finished. cache_key:{cache_key}  cache data exist result:{res}")
+            logger.info(f"exec {func_name} finished. cache_key:{cache_key}  cache data exist")
             content, status, headers = res['data']
             response = HttpResponse(content=content, status=status)
             for k, v in headers.values():

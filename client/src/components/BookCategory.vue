@@ -1,6 +1,12 @@
 <template>
   <el-space v-if="cate?.[0] === 0" wrap alignment="normal">
-    <el-card v-for="item in lobbyData" :key="item.category.id" class="box-card-0" shadow="hover">
+    <el-card
+      v-for="item in lobbyData"
+      :key="item.category.id"
+      class="box-card-0"
+      shadow="hover"
+      v-loading="loading"
+    >
       <template #header>
         <div class="card-header">
           <el-text tag="b" type="primary" size="large">{{ item.category.name }}</el-text>
@@ -47,19 +53,26 @@
       </el-link>
     </el-space>
     <el-space wrap alignment="normal" :size="1">
-      <el-card v-for="item in rankData" :key="item.category.id" class="box-card-2" shadow="hover">
+      <el-card
+        v-for="item in rankData"
+        :key="item.category.id"
+        class="box-card-2"
+        shadow="hover"
+        v-loading="loading"
+      >
         <template #header>
           <div class="card-header">
             <el-text tag="b" type="primary" size="large">{{ item.category.name }}</el-text>
           </div>
         </template>
-        <div v-for="book in item.data" :key="book.id" class="book-item">
+        <div v-for="(book, index) in item.data" :key="book.id" class="book-item">
           <el-popover placement="top-start" :width="200" trigger="hover">
             {{ book.name }} 作者:{{ book.author }}
             <template #reference>
               <el-text truncated>
                 <el-link :underline="false" @click="goDetail(book.id)"
-                  >{{ book.name }} 作者:{{ book.author }}</el-link
+                  ><el-tag size="small" :type="getIndexType(index + 1)">{{ index + 1 }}</el-tag
+                  >{{ book.name }}</el-link
                 >
               </el-text>
             </template>
@@ -73,8 +86,26 @@
       <el-text type="success">搜索结果如下：</el-text>
     </div>
     <el-space wrap direction="horizontal" alignment="normal">
-      <el-space wrap direction="vertical">
-        <el-card v-for="book in categoryData" :key="book.id" class="box-card" shadow="hover">
+      <el-space wrap direction="vertical" alignment="normal">
+        <el-space wrap size="large" style="margin: 20px auto 0 auto">
+          <el-text type="info">时间榜单：</el-text>
+          <el-link
+            :underline="false"
+            :type="activeTime === item.value ? 'primary' : 'info'"
+            v-for="item in timesList"
+            :key="item.value"
+            @click="getTimeTableData(item.value)"
+          >
+            {{ item.label }}
+          </el-link>
+        </el-space>
+        <el-card
+          v-for="book in categoryData"
+          :key="book.id"
+          class="box-card"
+          shadow="hover"
+          v-loading="loading"
+        >
           <template #header>
             <el-text truncated tag="b" size="large" @click="goDetail(book.id)">{{
               book.name
@@ -114,7 +145,13 @@
         />
       </el-space>
       <el-space wrap direction="vertical">
-        <el-card v-for="item in rankData" :key="item.category.id" class="box-card-1" shadow="hover">
+        <el-card
+          v-for="item in rankData"
+          :key="item.category.id"
+          class="box-card-1"
+          shadow="hover"
+          v-loading="loading"
+        >
           <template #header>
             <div class="card-header">
               <el-text tag="b" type="primary" size="large">{{ item.category.name }}</el-text>
@@ -126,7 +163,7 @@
               ></el-link>
             </div>
           </template>
-          <div v-for="book in item.data" :key="book.id" class="book-item">
+          <div v-for="(book, index) in item.data" :key="book.id" class="book-item">
             <el-row>
               <el-col :span="17">
                 <el-popover placement="top-start" :width="200" trigger="hover">
@@ -134,6 +171,9 @@
                   <template #reference>
                     <el-text truncated>
                       <el-link :underline="false" @click="goDetail(book.id)"
+                        ><el-tag size="small" :type="getIndexType(index + 1)">{{
+                          index + 1
+                        }}</el-tag
                         >{{ book.name }} 作者:{{ book.author }}</el-link
                       >
                     </el-text>
@@ -151,11 +191,11 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { BOOKCATEGORY, BOOKINFO } from '@/utils/types'
+import type { BOOKCATEGORY, BOOKINFO, BOOKTAGS } from '@/utils/types'
 import { PropType, reactive } from 'vue'
 import { getCategories, getCategoryBook, getLobby, getRank } from '@/api/lobby'
 import Pagination from '@/components/BasePagination.vue'
-import { formatTime } from '@/utils'
+import { formatTime, getIndexType } from '@/utils'
 import { useRouter } from 'vue-router'
 import { LOBBYDATA } from '@/utils/types'
 import { ElMessage } from 'element-plus'
@@ -166,7 +206,8 @@ const listQuery = reactive({
   size: 10,
   categories: '',
   ordering: '-created_time',
-  search: ''
+  search: '',
+  times: 0
 })
 const rankQuery = reactive({
   limit: 10,
@@ -180,10 +221,11 @@ const props = defineProps({
     required: true
   }
 })
-
+const loading = ref(false)
 const cate = ref(props.category)
 const categoryData = ref<BOOKINFO[]>()
 const tabsList = ref<BOOKCATEGORY[]>()
+const timesList = ref<BOOKTAGS[]>()
 
 const router = useRouter()
 const getSearchData = (search: object) => {
@@ -201,21 +243,36 @@ const goCategory = (category: number) => {
 const goDetail = (book_id: number) => {
   router.push({ name: 'book', params: { id: book_id } })
 }
+const getTimeTableData = (times: number) => {
+  listQuery.times = times
+  activeTime.value = times
+  listQuery.search = ''
+  listQuery.page = 1
+  listQuery.size = 10
+  getTableData()
+}
+
 const getTableData = () => {
+  loading.value = true
   getCategoryBook(listQuery).then((res: any) => {
     total.value = res.data.count
     if (total.value === 0 && listQuery.search.trim().length > 0) {
       ElMessage.info('搜索内容不存在')
     }
+    loading.value = false
     categoryData.value = res.data.results
+    timesList.value = res.times_choices
   })
 }
 const activeCategory = ref(-1)
+const activeTime = ref(0)
 const getRankData = () => {
+  loading.value = true
   getRank(rankQuery).then((res: any) => {
     if (res.code === 1000) {
       rankData.value = res.rank_data
     }
+    loading.value = false
   })
 }
 const getCategoryRandData = (categories: number) => {
@@ -225,20 +282,24 @@ const getCategoryRandData = (categories: number) => {
   getRankData()
 }
 const getCategoriesData = () => {
+  loading.value = true
   getCategories({ act: 'rank' }).then((res: any) => {
     if (res.code === 1000) {
       tabsList.value = res.data
     }
+    loading.value = false
   })
 }
 const goRank = () => {
   router.push({ name: 'lobby', query: { category: -1 } })
 }
 const getIndexData = () => {
+  loading.value = true
   getLobby({}).then((res: any) => {
     if (res.code === 1000) {
       lobbyData.value = res.data
     }
+    loading.value = false
   })
 }
 const searchPublisher = (act, key) => {
@@ -250,6 +311,9 @@ watch(
     listQuery.categories = JSON.stringify(props.category)
     cate.value = props.category
     listQuery.search = ''
+    listQuery.page = 1
+    listQuery.size = 10
+    listQuery.times = 0
     rankQuery.categories = listQuery.categories
     rankQuery.limit = 10
 

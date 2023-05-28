@@ -13,6 +13,14 @@ from api.utils.drive import get_download_url
 from api.utils.serializer import BookInfoSerializer, LobbyFileSerializer
 from common.base.magic import run_function_by_locker
 
+rank_days = {
+    0: '总',
+    1: '天',
+    7: '周',
+    30: '月',
+    120: '季',
+    360: '年',
+}
 
 def increase_grading_locker(*args, **kwargs):
     return {'locker_key': f'increase_grading_locker_{args[0]}'}
@@ -54,13 +62,7 @@ def increase_downloads(book_id):
 
 def get_rank_list(categories=None, limit=10):
     result = []
-    rank_days = {
-        0: '总',
-        7: '周',
-        30: '月',
-        120: '季',
-        360: '年',
-    }
+
     for day, label in rank_days.items():
         queryset = BookFileInfo.objects.filter(publish=True)
         book_labels = []
@@ -77,3 +79,16 @@ def get_rank_list(categories=None, limit=10):
             {'category': {'id': day, 'name': f"{'-'.join([x['name'] for x in book_labels])}书籍{label}排行榜"},
              'data': data})
     return result
+
+
+def get_times_choices():
+    return [{'label': f'{val}榜', 'value': key} for key, val in rank_days.items()]
+
+
+def get_search_choices():
+    return [
+        {'label': '书籍名', 'value': 'book'},
+        {'label': '作者', 'value': 'author'},
+        {'label': '标签', 'value': 'tags'},
+        {'label': '发布者', 'value': 'publisher'},
+    ]

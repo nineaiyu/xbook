@@ -53,6 +53,14 @@ export function downloadManyBook(book_id_list: number[]) {
   })
 }
 
+export function refreshBookCache() {
+  return request({
+    url: '/many/lobby',
+    method: 'post',
+    data: { action: 'cache' }
+  })
+}
+
 export function getDownloadUrl(id: number) {
   return request({
     url: '/download/' + id,

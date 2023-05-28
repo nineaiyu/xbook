@@ -4,11 +4,15 @@
 # filename : lobby
 # author : ly_13
 # date : 5/24/2023
+import base64
+import datetime
 import json
 import logging
 import time
+from hashlib import md5
 
 from django.db.models import Q
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
@@ -16,8 +20,10 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
 
 from api.models import BookFileInfo, BookLabels
-from api.utils.book import increase_grading, increase_downloads, get_rank_list
+from api.utils.book import increase_grading, increase_downloads, get_rank_list, get_times_choices, get_search_choices, \
+    rank_days
 from api.utils.serializer import LobbyFileSerializer, BookCategorySerializer, BookDetailSerializer
+from common.base.magic import cache_response
 from common.cache.storage import GradingCache
 from common.core.response import PageNumber, ApiResponse
 from common.core.throttle import Download2Throttle, Download1Throttle
@@ -26,15 +32,23 @@ from common.utils.token import verify_token
 logger = logging.getLogger(__file__)
 
 
+def lobby_cache_response_key(view_instance, view_method, request, args, kwargs):
+    query_str = json.dumps(request.query_params, sort_keys=True)
+    args_str = json.dumps(args, sort_keys=True)
+    kwargs_str = json.dumps(kwargs, sort_keys=True)
+    qp_key = base64.b64encode(md5(f"{query_str},{args_str},{kwargs_str}".encode('utf-8')).digest()).decode('utf-8')
+    return f'lobby_{view_instance.__class__.__name__}_{view_method.__name__}_{qp_key}'
+
+
 class BookCategoriesView(APIView):
     permission_classes = []
     authentication_classes = []
 
-    # @cache_response(timeout=600)
+    @cache_response(timeout=3600, key_func=lobby_cache_response_key)
     def get(self, request):
         act = request.query_params.get('act', '')
         if act == 'lobby':
-            result = [{'id': 0, 'name': '首页'}, {'id': -1, 'name': '排行榜'}]
+            result = [{'id': 0, 'name': '首页'}, {'id': -2, 'name': '最新发布'}, {'id': -1, 'name': '排行榜'}]
         elif act == 'rank':
             result = [{'id': -1, 'name': '总排行榜'}]
         else:
@@ -42,27 +56,20 @@ class BookCategoriesView(APIView):
         for l in BookLabels.get_categories().order_by('created_time').values('id', 'name').all():
             result.append(l)
 
-        search_choices = [
-            {'label': '书籍名', 'value': 'book'},
-            {'label': '作者', 'value': 'author'},
-            {'label': '标签', 'value': 'tags'},
-            {'label': '发布者', 'value': 'publisher'},
-        ]
-
-        return ApiResponse(data=result, search_choices=search_choices)
+        return ApiResponse(data=result, search_choices=get_search_choices())
 
 
 class BookLobbyView(APIView):
     permission_classes = []
     authentication_classes = []
 
-    # @cache_response(timeout=600)
+    @cache_response(timeout=3600, key_func=lobby_cache_response_key)
     def get(self, request):
         result = []
         limit = 10
         queryset = BookFileInfo.objects.filter(publish=True).order_by('-created_time')[:limit]
         data = LobbyFileSerializer(queryset, many=True).data
-        result.append({'category': {'id': 0, 'name': '最新发布'}, 'data': data})
+        result.append({'category': {'id': -2, 'name': '最新发布'}, 'data': data})
         for l in BookLabels.get_categories().order_by('created_time').values('id', 'name').all():
             queryset = BookFileInfo.objects.filter(publish=True, categories__id=l['id']).order_by('-created_time')[
                        :limit]
@@ -75,6 +82,7 @@ class BookRankDataView(APIView):
     permission_classes = []
     authentication_classes = []
 
+    @cache_response(timeout=3600, key_func=lobby_cache_response_key)
     def get(self, request):
         try:
             category = json.loads(request.query_params.get('categories'))
@@ -93,6 +101,7 @@ class BookRankDataView(APIView):
 class BookCategoryFilter(filters.FilterSet):
     categories = filters.CharFilter(field_name='categories', method='categories_filter')
     search = filters.CharFilter(field_name='search', method='search_filter')
+    times = filters.CharFilter(field_name='times', method='times_filter')
 
     def search_filter(self, queryset, name, value):
         try:
@@ -123,12 +132,28 @@ class BookCategoryFilter(filters.FilterSet):
             category = []
         if category:
             if isinstance(category, list):
+                if len(category) == 1 and category[0] == -2:
+                    return queryset.order_by('created_time')
                 lookup = '__'.join([name, 'in'])
             else:
                 lookup = name
             return queryset.filter(**{lookup: category}).distinct()
         else:
             return queryset
+
+    def times_filter(self, queryset, name, value):
+        try:
+            day = int(value)
+            if day not in rank_days.keys():
+                raise
+        except:
+            day = 0
+        if day != 0:
+            default_timezone = timezone.get_default_timezone()
+            value = timezone.make_aware(datetime.datetime.now() - datetime.timedelta(days=day), default_timezone)
+            queryset = queryset.filter(created_time__gt=value)
+
+        return queryset.order_by('-created_time').order_by('-downloads')
 
     class Meta:
         model = BookFileInfo
@@ -147,10 +172,10 @@ class BookCategoryView(ReadOnlyModelViewSet):
     ordering_fields = ['size', 'created_time', 'downloads']
     filterset_class = BookCategoryFilter
 
+    @cache_response(timeout=3600, key_func=lobby_cache_response_key)
     def list(self, request, *args, **kwargs):
         data = super().list(request, *args, **kwargs).data
-        return ApiResponse(data=data)
-
+        return ApiResponse(data=data, times_choices=get_times_choices())
 
 class BookDetailView(mixins.RetrieveModelMixin, GenericViewSet):
     permission_classes = []
@@ -159,6 +184,7 @@ class BookDetailView(mixins.RetrieveModelMixin, GenericViewSet):
     queryset = BookFileInfo.objects.all()
     serializer_class = BookDetailSerializer
 
+    @cache_response(timeout=600, key_func=lobby_cache_response_key)
     def retrieve(self, request, *args, **kwargs):
         data = super().retrieve(request, *args, **kwargs).data
         return ApiResponse(data=data)
@@ -168,7 +194,11 @@ class LobbyAction(APIView):
     permission_classes = []
     authentication_classes = []
     throttle_classes = [Download1Throttle, Download2Throttle]
+
     def post(self, request):
+        xff = request.META.get('HTTP_X_FORWARDED_FOR')
+        remote_addr = request.META.get('REMOTE_ADDR')
+        addr = ''.join(xff.split()) if xff else remote_addr
         action = request.data.get('action', '')
         book_id = request.data.get('book_id', '')
         index = request.data.get('index')
@@ -177,11 +207,13 @@ class LobbyAction(APIView):
         if verify_token(token, f"{book_id}", success_once=False):
             if action == 'grading' and index is not None:
                 g_cache = GradingCache(book_id, client_id)
-                if g_cache.get_storage_cache():
+                a_cache = GradingCache(book_id, addr)
+                if g_cache.get_storage_cache() or a_cache.get_storage_cache():
                     return ApiResponse(code=1001, msg='你已经评价过了，请明天再试')
                 grading_info = increase_grading(book_id, int(index))
                 if grading_info:
                     g_cache.set_storage_cache(time.time())
+                    a_cache.set_storage_cache(time.time())
                     return ApiResponse(grading_info=grading_info)
             if action == 'download':
                 download_url = increase_downloads(book_id)
