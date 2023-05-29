@@ -1,0 +1,25 @@
+version: '3.2'
+
+networks:
+    xbook:
+        external: true
+        name: xbook
+
+services:
+  nginx:
+    container_name: xbook_nginx
+    restart: always
+    image: 'nginx:1.21.3'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ../../data/web:/data
+      - ./nginx.conf.d:/etc/nginx/conf.d
+      - ../../data/logs/nginx:/var/log/nginx
+    networks:
+         xbook:
+           ipv4_address: 172.31.33.200
+    ports:
+        - 80:80
+        - 443:443
+    external_links:
+        - xbook:xbook

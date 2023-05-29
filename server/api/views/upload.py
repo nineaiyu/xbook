@@ -68,7 +68,7 @@ class AliyunDriveUploadView(APIView):
 
             file_name = file_info.get("file_name", generate_alphanumeric_token_of_length(32))
             owner_dir = "member" if request.user.last_name == "1" else "visitor"
-            file_info['file_name'] = f'{settings.BOOKSTORE}/{owner_dir}/{request.user.username}/{file_name}'
+            file_info['file_name'] = f'{settings.XBOOKSTORE}/{owner_dir}/{request.user.username}/{file_name}'
             drive_queryset = AliyunDrive.objects.filter(active=True, enable=True,
                                                         total_size__gte=F('used_size') + file_info.get('file_size', 0),
                                                         access_token__isnull=False)

@@ -1,0 +1,31 @@
+version: '3.2'
+
+networks:
+    xbook:
+        external: true
+        name: xbook
+
+services:
+  xbook:
+    container_name: xbook
+    restart: always
+    image: 'xbook'
+    working_dir: /data/server
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ../../server:/data/server
+      - ../../data/logs/xbook/:/data/xbook/logs
+      - ../../data/xbook/upload/:/data/server/upload
+      - ../../nginx.conf.d:/data/cert
+    networks:
+         xbook:
+           ipv4_address: 172.31.33.100
+    external_links:
+        - mariadb:xbook_mariadb
+        - redis:xbook_redis
+    sysctls:
+        - net.core.somaxconn=4096
+    ports:
+        - 8896:8896
+        - 5661:5661
+

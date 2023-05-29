@@ -41,7 +41,7 @@ class AliyunDriveFilter(filters.FilterSet):
 
 def clean_drive_file(instance):
     ali_obj = get_aliyun_drive(instance)
-    result = ali_obj.get_folder_by_path(settings.BOOKSTORE)
+    result = ali_obj.get_folder_by_path(settings.XBOOKSTORE)
     if result:
         result_list = ali_obj.move_file_to_trash(result.file_id)
         DownloadUrlCache(instance.default_drive_id, '*').del_many()

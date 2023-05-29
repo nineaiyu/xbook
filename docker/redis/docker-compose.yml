@@ -1,0 +1,25 @@
+version: '3.2'
+
+
+networks:
+    xbook:
+        external: true
+        name: xbook
+
+services:
+  redis:
+    image: 'bitnami/redis:6.2.7'
+    container_name: xbook_redis
+    restart: always
+    volumes:
+         - ../init/timezone:/etc/timezone:ro
+         - /etc/localtime:/etc/localtime:ro
+         - ../../data/redis:/bitnami/redis/data
+    environment:
+      #- REDIS_REPLICATION_MODE=master
+      #- ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=nineven
+    networks:
+      - xbook
+    #ports:
+    #  - 6379:6379

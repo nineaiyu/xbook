@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_filters',
+    'django_celery_results',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -179,8 +181,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'common.core.auth.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'common.core.auth.CookieJWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'EXCEPTION_HANDLER': 'common.core.exception.common_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
@@ -195,7 +197,6 @@ REST_FRAMEWORK = {
     },
     'DEFAULT_PAGINATION_CLASS': 'common.core.response.PageNumber',
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'common.core.permission.IsAuthenticated',
         'rest_framework.permissions.IsAuthenticated',
     ],
     # 'DEFAULT_FILTER_BACKENDS': (
@@ -270,13 +271,10 @@ CORS_ALLOW_HEADERS = (
 
 BASE_LOG_DIR = os.path.join(BASE_DIR, "logs", "api")
 TMP_LOG_DIR = os.path.join(BASE_DIR, "logs", "tmp")
-CELERY_LOG_DIR = os.path.join(BASE_DIR, "logs", "task")
 if not os.path.isdir(BASE_LOG_DIR):
     os.makedirs(BASE_LOG_DIR)
 if not os.path.isdir(TMP_LOG_DIR):
     os.makedirs(TMP_LOG_DIR)
-if not os.path.isdir(CELERY_LOG_DIR):
-    os.makedirs(CELERY_LOG_DIR)
 
 LOGGING = {
     'version': 1,
@@ -392,22 +390,27 @@ CELERY_TIMEZONE = "Asia/Shanghai"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
-CELERY_RESULT_BACKEND = ''
-CELERY_CACHE_BACKEND = 'django-cache'
+# CELERY_RESULT_BACKEND = ''
+# CELERY_CACHE_BACKEND = 'django-cache'
+
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'default'
 
 # broker redis
 DJANGO_DEFAULT_CACHES = CACHES['default']
 CELERY_BROKER_URL = 'redis://:%s@%s/2' % (
     DJANGO_DEFAULT_CACHES["OPTIONS"]["PASSWORD"], DJANGO_DEFAULT_CACHES["LOCATION"].split("/")[2])
 
-CELERY_WORKER_CONCURRENCY = 10  # worker并发数
+# CELERY_WORKER_CONCURRENCY = 10  # worker并发数
+CELERY_WORKER_AUTOSCALE = [10, 3]  # which needs two numbers: the maximum and minimum number of pool processes
+
 CELERYD_FORCE_EXECV = True  # 非常重要,有些情况下可以防止死
 CELERY_RESULT_EXPIRES = 3600  # 任务结果过期时间
 
 CELERY_WORKER_DISABLE_RATE_LIMITS = True  # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行
 CELERY_WORKER_PREFETCH_MULTIPLIER = 60  # celery worker 每次去redis取任务的数量
 
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # 每个worker执行了多少任务就会死掉，我建议数量可以大一些，比如200
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 200  # 每个worker执行了多少任务就会死掉，我建议数量可以大一些，比如200
 
 CELERY_ENABLE_UTC = False
 DJANGO_CELERY_BEAT_TZ_AWARE = True
@@ -416,7 +419,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
 # celery消息的序列化方式，由于要把对象当做参数所以使用pickle
-CELERY_RESULT_SERIALIZER = 'pickle'
+# CELERY_RESULT_SERIALIZER = 'pickle'
 # CELERY_ACCEPT_CONTENT = ['pickle']
 # CELERY_TASK_SERIALIZER = 'pickle'
 
@@ -433,5 +436,9 @@ CELERY_BEAT_SCHEDULE = {
     #     },
 }
 
-
-BOOKSTORE = '_XBOOK_STORE'
+HTTP_BIND_HOST = '0.0.0.0'
+HTTP_LISTEN_PORT = 8896
+# celery flower 任务监控配置
+CELERY_FLOWER_PORT = 5566
+CELERY_FLOWER_HOST = '127.0.0.1'
+XBOOKSTORE = '_XBOOK_STORE'
