@@ -24,7 +24,7 @@ from api.utils.book import increase_grading, increase_downloads, get_rank_list, 
     rank_days
 from api.utils.serializer import LobbyFileSerializer, BookCategorySerializer, BookDetailSerializer
 from common.base.magic import cache_response
-from common.cache.storage import GradingCache
+from common.cache.storage import GradingClickCache, BookDownloadCache, BookGradingCache
 from common.core.response import PageNumber, ApiResponse
 from common.core.throttle import Download2Throttle, Download1Throttle
 from common.utils.token import verify_token
@@ -38,6 +38,16 @@ def lobby_cache_response_key(view_instance, view_method, request, args, kwargs):
     kwargs_str = json.dumps(kwargs, sort_keys=True)
     qp_key = base64.b64encode(md5(f"{query_str},{args_str},{kwargs_str}".encode('utf-8')).digest()).decode('utf-8')
     return f'lobby_{view_instance.__class__.__name__}_{view_method.__name__}_{qp_key}'
+
+
+class BookGradeDownloadsView(APIView):
+    permission_classes = []
+    authentication_classes = []
+
+    def get(self, request):
+        book_id = request.query_params.get('bid')
+        return ApiResponse(downloads=BookDownloadCache(book_id).get_storage_cache(),
+                           grading_info=BookGradingCache(book_id).get_storage_cache())
 
 
 class BookCategoriesView(APIView):
@@ -184,7 +194,7 @@ class BookDetailView(mixins.RetrieveModelMixin, GenericViewSet):
     queryset = BookFileInfo.objects.all()
     serializer_class = BookDetailSerializer
 
-    @cache_response(timeout=600, key_func=lobby_cache_response_key)
+    @cache_response(timeout=3600, key_func=lobby_cache_response_key)
     def retrieve(self, request, *args, **kwargs):
         data = super().retrieve(request, *args, **kwargs).data
         return ApiResponse(data=data)
@@ -206,8 +216,8 @@ class LobbyAction(APIView):
         client_id = request.data.get('key')
         if verify_token(token, f"{book_id}", success_once=False):
             if action == 'grading' and index is not None:
-                g_cache = GradingCache(book_id, client_id)
-                a_cache = GradingCache(book_id, addr)
+                g_cache = GradingClickCache(book_id, client_id)
+                a_cache = GradingClickCache(book_id, addr)
                 if g_cache.get_storage_cache() or a_cache.get_storage_cache():
                     return ApiResponse(code=1001, msg='你已经评价过了，请明天再试')
                 grading_info = increase_grading(book_id, int(index))
@@ -218,7 +228,7 @@ class LobbyAction(APIView):
             if action == 'download':
                 download_url = increase_downloads(book_id)
                 if download_url:
-                    return ApiResponse(**download_url)
+                    return ApiResponse(**download_url, downloads=BookDownloadCache(book_id).get_storage_cache())
         else:
             return ApiResponse(code=1001, msg='授权失效，请刷新页面重试')
         return ApiResponse(code=1001, msg='数据异常，操作失败')

@@ -8,7 +8,7 @@ from api.views.book import BookInfoView, BookLabelInfoView
 from api.views.download import DownloadView
 from api.views.files import FileInfoView
 from api.views.lobby import BookLobbyView, BookCategoryView, LobbyAction, BookDetailView, BookRankDataView, \
-    BookCategoriesView
+    BookCategoriesView, BookGradeDownloadsView
 from api.views.upload import AliyunDriveUploadView, UploadView
 
 router = SimpleRouter(False)
@@ -29,6 +29,7 @@ urlpatterns = [
     re_path(r'^upload/file$', UploadView.as_view(), name='upload_file'),
     re_path(r'^label$', BookLabelInfoView.as_view(), name='book_label'),
     re_path(r'^lobby$', BookLobbyView.as_view(), name='lobby'),
+    re_path(r'^number$', BookGradeDownloadsView.as_view(), name='book_number'),
     re_path(r'^categories$', BookCategoriesView.as_view(), name='categories'),
     re_path(r'^rank$', BookRankDataView.as_view(), name='rank'),
     re_path(r'^action$', LobbyAction.as_view(), name='lobby_action'),

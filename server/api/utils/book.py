@@ -10,8 +10,9 @@ from django.utils import timezone
 
 from api.models import BookLabels, BookFileInfo
 from api.utils.drive import get_download_url
-from api.utils.serializer import BookInfoSerializer, LobbyFileSerializer
+from api.utils.serializer import LobbyFileSerializer
 from common.base.magic import run_function_by_locker
+from common.cache.storage import BookDownloadCache, BookGradingCache
 
 rank_days = {
     0: '总',
@@ -41,7 +42,8 @@ def increase_grading(book_id, index):
     grading[index] += 1
     book.grading = grading
     book.save(update_fields=['grading'])
-    return BookInfoSerializer().get_grading_info(book)
+    BookGradingCache(book_id).set_storage_cache(book.grading)
+    return book.grading
 
 
 def increase_downloads_locker(*args, **kwargs):
@@ -55,8 +57,17 @@ def increase_downloads(book_id):
         return
     download_url = get_download_url(book.file)
     if download_url:
+
+        download_cache = BookDownloadCache(book_id)
+        if download_cache.get_storage_cache():
+            download_cache.incr()
+        else:
+            download_cache.set_storage_cache(book.downloads + 1)
+
         book.downloads += 1
         book.save(update_fields=['downloads'])
+        book.file.downloads += 1
+        book.file.save(update_fields=['downloads'])
         return download_url
 
 

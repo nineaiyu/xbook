@@ -43,3 +43,11 @@ export function actionLobby(data: object) {
     data
   })
 }
+
+export function getBookNumber(params: object) {
+  return request({
+    url: '/number',
+    method: 'get',
+    params: params
+  })
+}

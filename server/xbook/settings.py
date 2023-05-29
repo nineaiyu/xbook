@@ -381,7 +381,9 @@ CACHE_KEY_TEMPLATE = {
     'download_url_key': 'download_url',
     'aliyun_drive_auth_key': 'aliyun_drive_auth',
     'upload_part_info_key': 'upload_part_info',
+    'book_grading_click_key': 'book_grading_click',
     'book_grading_increase_key': 'book_grading_increase',
+    'book_download_increase_key': 'book_download_increase',
 }
 
 # Celery Configuration Options

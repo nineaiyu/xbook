@@ -169,6 +169,6 @@ class BookDetailSerializer(BookCategorySerializer, BookInfoSerializer):
 
     def get_token(self, obj):
         context = self.context
-        time_limit = context.get('time_limit', 600)
+        time_limit = context.get('time_limit', 3600)
         prefix = context.get('prefix', 'lobby')
         return make_token(key=f"{obj.pk}", time_limit=time_limit, force_new=True, prefix=prefix)

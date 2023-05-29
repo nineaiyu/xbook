@@ -67,7 +67,7 @@ import { onMounted } from 'vue'
 import { RouteParamValue, useRoute } from 'vue-router'
 import type { BOOKINFO } from '@/utils/types'
 import { downloadFile, formatTime, getAssetsFile } from '@/utils'
-import { actionLobby, getBookDetail, getCategories } from '@/api/lobby'
+import { actionLobby, getBookDetail, getBookNumber, getCategories } from '@/api/lobby'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import router from '@/router'
 
@@ -78,11 +78,22 @@ const getBookData = (id: string | RouteParamValue[]) => {
       Object.keys(res.data).forEach((key) => {
         ;(bookInfo as any)[key] = res.data[key]
       })
+      getBookDownloadsData()
     }
   })
 }
 const searchPublisher = (act, key) => {
   router.push({ name: 'lobby', query: { key: key, act: act } })
+}
+const formatDownloadGradeData = (res: object) => {
+  if (res.grading_info) {
+    for (let i = 0; i < bookInfo.grading_info.length; i++) {
+      bookInfo.grading_info[i].value = res.grading_info[i]
+    }
+  }
+  if (res.downloads) {
+    bookInfo.downloads = res.downloads
+  }
 }
 const increaseAction = (index: number | string, action: string = 'grading') => {
   actionLobby({
@@ -93,12 +104,10 @@ const increaseAction = (index: number | string, action: string = 'grading') => {
     key: client_id.value
   }).then((res: any) => {
     if (res.code === 1000) {
-      if (res.grading_info) {
-        bookInfo.grading_info = res.grading_info
-      }
       if (res.download_url) {
         downloadFile(res.download_url)
       }
+      formatDownloadGradeData(res)
     }
   })
 }
@@ -118,6 +127,13 @@ const getCategoriesData = () => {
   getCategories({ act: 'lobby' }).then((res: any) => {
     if (res.code === 1000) {
       tabsList.value = res.data
+    }
+  })
+}
+const getBookDownloadsData = () => {
+  getBookNumber({ bid: bookInfo.id }).then((res: any) => {
+    if (res.code === 1000) {
+      formatDownloadGradeData(res)
     }
   })
 }
