@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4kah)x(u3+ow_650v71n#0g98-(z1#+80)+r@r=lvzmi_9c6k)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -429,11 +429,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=2, minute=2),
         'args': ()
     }
-    #    , 'clean_visitor_user_job': {
-    #         'task': 'api.tasks.clean_visitor_user',
-    #         'schedule': crontab(hour=2, minute=30),
-    #         'args': ()
-    #     },
 }
 
 HTTP_BIND_HOST = '0.0.0.0'
