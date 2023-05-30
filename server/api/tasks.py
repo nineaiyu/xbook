@@ -9,10 +9,8 @@ import logging
 from datetime import datetime, timedelta
 
 from celery import shared_task
-from django.conf import settings
-from django.utils import timezone
 
-from api.models import AliyunDrive, AliyunFileInfo, UserInfo
+from api.models import AliyunDrive
 from api.utils.drive import get_aliyun_drive
 from common.base.magic import MagicCacheData, cache_response
 from xbook.celery import app
@@ -42,9 +40,9 @@ def sync_drive_size(pks):
             logger.warning(f'{drive_obj} update drive size failed:{e}')
 
 
-@MagicCacheData.make_cache(timeout=30, key_func=lambda *args: args[0].user_id)
+@MagicCacheData.make_cache(timeout=3600, key_func=lambda *args: args[0].user_id)
 def delay_sync_drive_size(drive_obj):
-    c_task = sync_drive_size.apply_async(args=([drive_obj.pk],), eta=eta_second(30))
+    c_task = sync_drive_size.apply_async(args=([drive_obj.pk],), eta=eta_second(3600))
     logger.info(f'{drive_obj} delay exec {c_task}')
 
 

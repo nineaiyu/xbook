@@ -67,6 +67,11 @@ class AliyunFileInfo(DbBaseModel):
         verbose_name = '文件信息'
         verbose_name_plural = "文件信息"
 
+    def delete(self, using=None, keep_parents=False):
+        if self.bookfileinfo:
+            self.bookfileinfo.delete()
+        super().delete(using, keep_parents)
+
     def __str__(self):
         return f"所属用户:{self.owner_id}-文件名:{self.name}-下载次数:{self.downloads}-文件大小:{self.size}"
 
@@ -127,6 +132,11 @@ class BookFileInfo(DbBaseModel):
     class Meta:
         verbose_name = '书籍信息'
         verbose_name_plural = "书籍信息"
+
+    def delete(self, using=None, keep_parents=False):
+        if self.cover:
+            self.cover.delete()
+        super().delete(using, keep_parents)
 
     def __str__(self):
         return f"所属用户:{self.owner_id}-文件名:{self.name}-下载次数:{self.downloads}"

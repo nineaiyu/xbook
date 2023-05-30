@@ -36,19 +36,20 @@ def check_sid(request, sid):
     return False
 
 
-def save_file_info(complete, request, drive_obj):
+def save_file_info(complete, user_obj, drive_obj):
     fields = ['name', 'file_id', 'drive_id', 'created_at', 'size', 'content_type', 'content_hash',
               'crc64_hash', 'category']
 
     defaults = {}
     for f in fields:
         defaults[f] = getattr(complete, f)
-    AliyunFileInfo.objects.create(
-        owner_id=request.user,
+    obj = AliyunFileInfo.objects.create(
+        owner_id=user_obj,
         aliyun_drive_id=drive_obj,
         **defaults
     )
     delay_sync_drive_size(drive_obj)
+    return obj
 
 
 class AliyunDriveUploadView(APIView):
@@ -67,8 +68,7 @@ class AliyunDriveUploadView(APIView):
                                                                                      'upload_complete']:
 
             file_name = file_info.get("file_name", generate_alphanumeric_token_of_length(32))
-            owner_dir = "member" if request.user.last_name == "1" else "visitor"
-            file_info['file_name'] = f'{settings.XBOOKSTORE}/{owner_dir}/{request.user.username}/{file_name}'
+            file_info['file_name'] = f'{settings.XBOOKSTORE}/{time.strftime(f"{request.user.pk}/%Y/%m/%d/%S/{file_name}")}'
             drive_queryset = AliyunDrive.objects.filter(active=True, enable=True,
                                                         total_size__gte=F('used_size') + file_info.get('file_size', 0),
                                                         access_token__isnull=False)
@@ -98,7 +98,7 @@ class AliyunDriveUploadView(APIView):
                     data['part_info_list'] = ali_obj.reget_upload_part_url(part_info)
                 else:
                     complete = ali_obj.get_file(part_info.file_id, part_info.drive_id)
-                    save_file_info(complete, request, drive_obj)
+                    save_file_info(complete, request.user, drive_obj)
                     UploadPartInfoCache(file_info.get('sid')).del_storage_cache()
                     data['file_id'] = complete.file_id
                 return ApiResponse(data=data)
@@ -107,7 +107,7 @@ class AliyunDriveUploadView(APIView):
                 complete, check_status = ali_obj.upload_complete(file_info)
                 logger.debug(f'{file_info.get("file_name")} pre_hash check {complete}')
                 if complete and check_status:
-                    save_file_info(complete, request, drive_obj)
+                    save_file_info(complete, request.user, drive_obj)
                     UploadPartInfoCache(file_info.get('sid')).del_storage_cache()
                 return ApiResponse(data={'check_status': check_status, 'file_id': complete.file_id})
         return ApiResponse(code=1001, msg='错误请求')

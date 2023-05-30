@@ -16,6 +16,26 @@
       <el-form-item label="书籍作者">
         <el-input v-model="bookData.author" clearable placeholder="书籍作者"></el-input>
       </el-form-item>
+      <el-form-item label="书籍封面">
+        <el-upload
+          ref="uploadRef"
+          list-type="picture-card"
+          :show-file-list="false"
+          :auto-upload="props.edit"
+          :headers="uploadAuth()"
+          :action="uploadUrl()"
+          :on-success="uploadSuccess"
+          :on-error="uploadError"
+          :before-upload="beforeUpload"
+          :on-change="changeUpload"
+        >
+          <el-image v-if="bookData.cover" :src="bookData.cover" />
+          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          <template #tip>
+            <div class="el-upload__tip">jpg/png/gif/jpeg files with a size less than 500kb</div>
+          </template>
+        </el-upload>
+      </el-form-item>
       <el-form-item label="是否发布">
         <el-switch
           v-model="bookData.publish"
@@ -52,26 +72,6 @@
             :value="item.value"
           />
         </el-select>
-      </el-form-item>
-      <el-form-item label="书籍封面">
-        <el-upload
-          ref="uploadRef"
-          list-type="picture-card"
-          :show-file-list="false"
-          :auto-upload="props.edit"
-          :headers="uploadAuth()"
-          :action="uploadUrl()"
-          :on-success="uploadSuccess"
-          :on-error="uploadError"
-          :before-upload="beforeUpload"
-          :on-change="changeUpload"
-        >
-          <el-image v-if="bookData.cover" :src="bookData.cover" />
-          <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
-          <template #tip>
-            <div class="el-upload__tip">jpg/png/gif/jpeg files with a size less than 500kb</div>
-          </template>
-        </el-upload>
       </el-form-item>
       <el-form-item label="标签[多选]">
         <el-select
@@ -239,12 +239,18 @@ const formatGrading = () => {
 }
 const addBookFun = () => {
   upGrading()
+  const pic_flag = bookData.cover
   addBook(bookData).then((res: any) => {
     if (res.code === 1000) {
       Object.keys(res).forEach((key) => {
         ;(bookData as any)[key] = res[key]
       })
-      uploadRef.value!.submit()
+      if (pic_flag) {
+        uploadRef.value!.submit()
+      } else {
+        flag.value = true
+        showVisible.value = false
+      }
       ElMessage.success(res.msg)
     } else {
       ElMessage.error(res.msg)
