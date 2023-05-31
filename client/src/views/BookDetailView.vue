@@ -29,6 +29,7 @@
           >
         </el-text>
         <el-text type="info">时间：{{ formatTime(bookInfo.created_time) }}</el-text>
+        <el-text type="info">大小：{{ diskSize(bookInfo.size) }}</el-text>
         <el-text type="info">总下载次数：{{ bookInfo.downloads }}</el-text>
         <el-text type="primary" @click="searchPublisher('pid', bookInfo.publisher.username)"
           >发布者：{{ bookInfo.publisher?.first_name }}</el-text
@@ -66,7 +67,7 @@
 import { onMounted } from 'vue'
 import { RouteParamValue, useRoute } from 'vue-router'
 import type { BOOKINFO } from '@/utils/types'
-import { downloadFile, formatTime, getAssetsFile } from '@/utils'
+import { diskSize, downloadFile, formatTime, getAssetsFile } from '@/utils'
 import { actionLobby, getBookDetail, getBookNumber, getCategories } from '@/api/lobby'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import router from '@/router'

@@ -52,12 +52,15 @@ export function getLocationOrigin() {
   return origin + '/'
 }
 
-export function copyRDownloadUrl(file_info: any, event: any) {
+export function get_downloadUrl(file_info: any) {
   let base_url = `${import.meta.env.VITE_API_DOMAIN}/`
   if (base_url === '/') {
     base_url = getLocationOrigin()
   }
-  clip(`${base_url}r_download/${file_info.id}/${file_info.file_id}/${file_info.name}`, event)
+  return `${base_url}r_download/${file_info.id}/${file_info.file_id}/${file_info.name}`
+}
+export function copyRDownloadUrl(file_info: any, event: any) {
+  clip(`${get_downloadUrl(file_info)}`, event)
 }
 
 export function downloadFile(url: string) {
@@ -69,7 +72,7 @@ export function downloadFile(url: string) {
   document.body.appendChild(iframe)
   setTimeout(() => {
     iframe.remove()
-  }, 5 * 60 * 1000)
+  }, 5 * 1000)
 }
 
 export const getAssetsFile = (url: string) => {

@@ -57,7 +57,7 @@ def get_aliyun_drive(drive_obj: AliyunDrive) -> Aligo:
             return Aligo(drive_obj, refresh_token=drive_obj.refresh_token)
 
 
-def get_download_url(file_obj: AliyunFileInfo, download=False) -> dict:
+def get_download_url(file_obj: AliyunFileInfo, download=True) -> dict:
     if not file_obj:
         return {}
     download_cache = DownloadUrlCache(file_obj.drive_id, file_obj.file_id)
