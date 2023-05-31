@@ -6,7 +6,7 @@ networks:
         name: xbook
 
 services:
-  nginx:
+  xbook_nginx:
     container_name: xbook_nginx
     restart: always
     image: 'nginx:1.21.3'

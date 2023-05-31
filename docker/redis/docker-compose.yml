@@ -7,7 +7,7 @@ networks:
         name: xbook
 
 services:
-  redis:
+  xbook_redis:
     image: 'bitnami/redis:6.2.7'
     container_name: xbook_redis
     restart: always

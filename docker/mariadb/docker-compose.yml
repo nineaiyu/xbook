@@ -9,7 +9,7 @@ networks:
 
 services:
 
-  mariadb:
+  xbook_mariadb:
     image: bitnami/mariadb:10.7.3
     container_name: xbook_mariadb
     restart: always
