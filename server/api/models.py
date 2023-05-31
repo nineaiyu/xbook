@@ -68,7 +68,7 @@ class AliyunFileInfo(DbBaseModel):
         verbose_name_plural = "文件信息"
 
     def delete(self, using=None, keep_parents=False):
-        if self.bookfileinfo:
+        if getattr(self, 'bookfileinfo', None):
             self.bookfileinfo.delete()
         super().delete(using, keep_parents)
 
