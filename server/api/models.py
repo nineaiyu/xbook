@@ -118,7 +118,7 @@ def book_directory_path(instance, filename):
 class BookFileInfo(DbBaseModel):
     file = models.OneToOneField(to=AliyunFileInfo, on_delete=models.CASCADE, verbose_name="存储信息")
     name = models.CharField(max_length=256, verbose_name="书籍名称")
-    introduction = models.CharField(max_length=512, verbose_name="书籍简介", null=True, blank=True)
+    introduction = models.CharField(max_length=2048, verbose_name="书籍简介", null=True, blank=True)
     cover = models.FileField(verbose_name="书籍封面", null=True, blank=True, upload_to=book_directory_path)
     author = models.CharField(max_length=32, verbose_name="书籍作者")
     downloads = models.BigIntegerField(verbose_name="下载次数", default=0)

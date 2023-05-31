@@ -32,6 +32,7 @@ class ManyActionView(APIView):
             if action in ['delete', 'download'] and book_id_list:
                 if action == 'delete':
                     BookFileInfo.objects.filter(owner_id=request.user, pk__in=book_id_list).delete()
+                    return ApiResponse()
                 elif action == 'download':
                     file_obj_list = AliyunFileInfo.objects.filter(owner_id=request.user,
                                                                   bookfileinfo__pk__in=book_id_list).all()

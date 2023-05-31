@@ -119,7 +119,7 @@ class Migration(migrations.Migration):
                 ('created_time', models.DateTimeField(auto_now_add=True, verbose_name='添加时间')),
                 ('updated_time', models.DateTimeField(auto_now=True, verbose_name='更新时间')),
                 ('name', models.CharField(max_length=256, verbose_name='书籍名称')),
-                ('introduction', models.CharField(blank=True, max_length=512, null=True, verbose_name='书籍简介')),
+                ('introduction', models.CharField(blank=True, max_length=2048, null=True, verbose_name='书籍简介')),
                 ('cover', models.FileField(blank=True, null=True, upload_to=api.models.book_directory_path,
                                            verbose_name='书籍封面')),
                 ('author', models.CharField(max_length=32, verbose_name='书籍作者')),

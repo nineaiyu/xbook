@@ -350,7 +350,7 @@ watch(
     width: 380px;
   }
   .box-card-1 {
-    width: 380px;
+    width: 370px;
   }
   .box-card-2 {
     width: 232px;

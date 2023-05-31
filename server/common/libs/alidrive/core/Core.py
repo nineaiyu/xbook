@@ -1,6 +1,7 @@
 """..."""
 
 from .Create import Create
+from .LocalCreate import LocalCreate
 from .Download import Download
 from .Drive import Drive
 from .File import File
@@ -11,6 +12,7 @@ from .Video import Video
 
 class Core(
     Create,
+    LocalCreate,
     Download,
     Drive,
     User,

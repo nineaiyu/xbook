@@ -80,21 +80,6 @@ class Create(BaseAligo):
         part_info = self._result(response, CreateFileResponse, [201, 409])
         return part_info
 
-    def _get_proof_code(self, file_path: str, file_size: int) -> str:
-        """计算proof_code"""
-        md5_int = int(hashlib.md5(self._auth.token.access_token.encode()).hexdigest()[:16], 16)
-        # file_size = os.path.getsize(file_path)
-        offset = md5_int % file_size if file_size else 0
-        if file_path.startswith('http'):
-            # noinspection PyProtectedMember
-            bys = self._session.get(file_path, headers={
-                'Range': f'bytes={offset}-{min(8 + offset, file_size) - 1}'
-            }).content
-        else:
-            with open(file_path, 'rb') as file:
-                file.seek(offset)
-                bys = file.read(min(8, file_size - offset))
-        return base64.b64encode(bys).decode()
 
     def _content_hash(self, file_info: FileInfo, parent_file_id='root', drive_id=None,
                       check_name_mode: CheckNameMode = 'auto_rename') -> CreateFileResponse:
@@ -128,45 +113,6 @@ class Create(BaseAligo):
         """
         response = self._post(V2_FILE_GET_UPLOAD_URL, body=body)
         return self._result(response, GetUploadUrlResponse)
-
-    def _put_data(self, file_path: str, part_info: CreateFileResponse, file_size: int) -> Union[BaseFile, Null]:
-        """上传数据"""
-        with open(file_path, 'rb') as f:
-            progress_bar = tqdm(total=file_size, unit='B', unit_scale=True, colour='#21d789')
-            for i in range(len(part_info.part_info_list)):
-                part_info_item = part_info.part_info_list[i]
-                data = f.read(Create.__UPLOAD_CHUNK_SIZE)
-                try:
-                    resp = self._session.put(data=data, url=part_info_item.upload_url)
-                    if resp.status_code == 403:
-                        raise requests.exceptions.RequestException(f'upload_url({part_info_item.upload_url}) expired')
-                except requests.exceptions.RequestException:
-                    part_info = self.get_upload_url(GetUploadUrlRequest(
-                        drive_id=part_info.drive_id,
-                        file_id=part_info.file_id,
-                        upload_id=part_info.upload_id,
-                        part_info_list=[UploadPartInfo(part_number=i.part_number) for i in part_info.part_info_list]
-                    ))
-                    part_info_item = part_info.part_info_list[i]
-                    resp = self._session.put(data=data, url=part_info_item.upload_url)
-                if resp.status_code == 403:
-                    raise '这里不对劲，请反馈：https://github.com/foyoux/aligo/issues/new'
-                progress_bar.update(len(data))
-
-        progress_bar.close()
-
-        # complete
-        complete = self.complete_file(CompleteFileRequest(
-            drive_id=part_info.drive_id,
-            file_id=part_info.file_id,
-            upload_id=part_info.upload_id,
-            part_info_list=part_info.part_info_list
-        ))
-        if isinstance(complete, BaseFile):
-            self._auth.log.info(f'文件上传完成 {file_path}')
-        else:
-            self._auth.log.info(f'文件上传失败 {file_path}')
-        return complete
 
     def pre_hash_check(
             self,

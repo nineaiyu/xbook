@@ -6,11 +6,13 @@ from api.models import AliyunDrive
 from .Create import Create
 from .Download import Download
 from .File import File
+from .LocalCreate import LocalCreate
 from .Recyclebin import Recyclebin
 from .Video import Video
 
 
 class Aligo(
+    LocalCreate,
     Create,
     Download,
     File,
