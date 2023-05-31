@@ -21,8 +21,8 @@ services:
          xbook:
            ipv4_address: 172.31.33.100
     external_links:
-#        - mariadb:mariadb
-        - redis:xbook_redis
+#        - xbook_mariadb:mariadb
+        - xbook_redis:redis
     extra_hosts:
         - "mariadb:172.31.33.1"
     sysctls:

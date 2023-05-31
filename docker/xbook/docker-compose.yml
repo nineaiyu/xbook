@@ -21,8 +21,8 @@ services:
          xbook:
            ipv4_address: 172.31.33.100
     external_links:
-        - mariadb:xbook_mariadb
-        - redis:xbook_redis
+        - xbook_mariadb:mariadb
+        - xbook_redis:redis
     sysctls:
         - net.core.somaxconn=4096
     ports:
