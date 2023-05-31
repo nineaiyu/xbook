@@ -105,6 +105,12 @@ watch(
     initTabsAct()
   }
 )
+watch(
+  () => route.query.key,
+  () => {
+    initTabsAct()
+  }
+)
 </script>
 <style scoped>
 .el-card {
