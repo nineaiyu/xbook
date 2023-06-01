@@ -19,8 +19,8 @@ RUN cd /opt/ && pip install -U setuptools pip -i ${PIP_MIRROR} --ignore-installe
 #RUN rm -rf /var/cache/yum/
 
 WORKDIR /data/robot_server/
-RUN addgroup --system --gid 101 nginx \
-    && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 101 nginx 
+RUN addgroup --system --gid 1001 nginx \
+    && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 1001 nginx
 
 
 #ENTRYPOINT ["python", "manage.py", "start", "all","-u","nginx"]
