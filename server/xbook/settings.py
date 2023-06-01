@@ -163,7 +163,7 @@ AUTH_USER_MODEL = "api.UserInfo"
 STATIC_URL = 'static/'
 
 # Media配置
-MEDIA_URL = "files/"
+MEDIA_URL = "f_download/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
 
 FILE_UPLOAD_HANDLERS = [
