@@ -14,7 +14,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ../../server:/data/server
-      - ../../data/logs/xbook/:/data/xbook/logs
+      - ../../data/logs/xbook/:/data/server/logs
       - ../../data/xbook/upload/:/data/server/upload
       - ../../nginx.conf.d:/data/cert
     networks:
