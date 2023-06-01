@@ -28,6 +28,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/v1/", include('api.urls')),
     re_path(r'flower/(?P<path>.*)', CeleryFlowerView.as_view(), name='flower-view'),
-    # media路径配置 如果未开启token 授权，可以启动下面配置，直接让nginx读取资源，无需 uwsgi 进行转发
-    re_path('^files/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    # media路径配置 开发环境可以启动下面配置，正式环境需要让nginx读取资源，无需进行转发
+    re_path('^f_download/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
