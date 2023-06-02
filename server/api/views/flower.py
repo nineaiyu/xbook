@@ -15,7 +15,6 @@ flower_url = f'{settings.CELERY_FLOWER_HOST}:{settings.CELERY_FLOWER_PORT}'
 
 
 class CeleryFlowerView(APIView):
-    authentication_classes = []
     def get(self, request, path):
         if not request.user.is_superuser:
             return HttpResponse("Forbidden")
